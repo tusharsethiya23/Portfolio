@@ -68,7 +68,7 @@ export default function Portfolio() {
   };
 
   return (
-    <div className="cursor-none bg-[#F3F2EE] text-[#111111] font-sans selection:bg-black selection:text-white overflow-x-clip min-h-[100dvh]">
+    <div className="md:cursor-none bg-[#F3F2EE] text-[#111111] font-sans selection:bg-black selection:text-white overflow-x-clip min-h-[100dvh]">
       <CustomCursor />
       <Loader loading={loading} visibleCount={visibleCount} splitProgress={splitProgress} cardIndex={cardIndex} loaderCards={loaderCards} />
       <Header
