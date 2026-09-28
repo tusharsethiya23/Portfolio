@@ -1,0 +1,63 @@
+@import "tailwindcss";
+
+html, body, #root {
+  min-height: 100%;
+}
+
+html {
+  scroll-behavior: auto;
+}
+
+body {
+  margin: 0;
+  background: #F3F2EE;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+@media (max-width: 374px) {
+  .animate-marquee { animation-duration: 20s; }
+}
+
+@media (max-width: 479px) {
+  button, a, input, select, textarea { -webkit-tap-highlight-color: transparent; }
+  input, select, textarea { font-size: 16px; }
+}
+
+@media (min-width: 768px) and (max-width: 1023px) {
+  section { scroll-margin-top: 72px; }
+}
+
+@media (min-width: 1024px) and (max-width: 1279px) {
+  #projects article { padding-right: 2vw; }
+}
+
+@media (min-width: 1536px) {
+  #home, #about, #projects, #skills, #contact, #footer {
+    --responsive-gutter: clamp(48px, 4vw, 96px);
+  }
+}
+
+@media (min-width: 1920px) {
+  #home, #about, #projects, #skills, #contact, #footer { font-size: 1.05rem; }
+  header { min-height: 88px; }
+}
+
+@media (min-width: 2560px) {
+  #home > div, #about > div, #projects > div, #skills > div, #footer > div { max-width: 2000px; }
+}
+
+@media (hover: none), (pointer: coarse) {
+  body, .cursor-none { cursor: auto !important; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    scroll-behavior: auto !important;
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+}
