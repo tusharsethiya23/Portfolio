@@ -1,3 +1,5 @@
+import { CONTACT } from "../../data/contact";
+
 export default function Footer() {
   return (
     <footer
@@ -33,14 +35,14 @@ export default function Footer() {
             {/* CONTACT */}
             <div className="flex flex-wrap gap-x-8 gap-y-4 text-sm uppercase tracking-wide">
               <a
-                href="mailto:tushar@example.com"
+                href={`mailto:${CONTACT.email}`}
                 className="transition-opacity duration-300 lowercase hover:opacity-50"
               >
-                tusharsethiya023@gmail.com
+                {CONTACT.email}
               </a>
 
               <a
-                href="https://www.linkedin.com/in/tusharsethiya23"
+                href={CONTACT.linkedin}
                 target="_blank"
                 rel="noopener noreferrer"
                 className="transition-opacity duration-300 hover:opacity-50"
@@ -49,7 +51,7 @@ export default function Footer() {
               </a>
 
               <a
-                href="https://github.com/tusharsethiya23"
+                href={CONTACT.github}
                 target="_blank"
                 rel="noopener noreferrer"
                 className="transition-opacity duration-300 hover:opacity-50"

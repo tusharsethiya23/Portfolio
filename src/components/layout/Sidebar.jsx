@@ -1,3 +1,5 @@
+import { CONTACT } from "../../data/contact";
+
 export default function Sidebar({
   sidebarRendered,
   sidebarAnimating,
@@ -134,7 +136,7 @@ export default function Sidebar({
               </p>
 
               <a
-                href="mailto:tushar@example.com"
+                href={`mailto:${CONTACT.email}`}
                 className="
                   mt-1
                   inline-block
@@ -145,7 +147,7 @@ export default function Sidebar({
                   hover:underline
                 "
               >
-                tusharsethiya023@example.com
+                {CONTACT.email}
               </a>
             </div>
 

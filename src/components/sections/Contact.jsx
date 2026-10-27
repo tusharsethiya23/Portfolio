@@ -1,239 +1,204 @@
 import { useEffect, useRef, useState } from "react";
+import { SiGithub } from "react-icons/si";
+import { CONTACT } from "../../data/contact";
+
+const HEADING_LINES = ["LET'S WORK", "TOGETHER"];
+const CHARACTERS = "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789";
 
 export default function Contact() {
-  const [contactHeading, setContactHeading] = useState("OPEN THE DOOR");
-  const contactSectionRef = useRef(null);
-  const scrambleStartedRef = useRef(false);
+  const [heading, setHeading] = useState(HEADING_LINES);
+  const [copied, setCopied] = useState(false);
+  const sectionRef = useRef(null);
+  const scrambleRef = useRef(() => {});
 
+  // Heading scrambles into place every time the section comes into view (and on hover)
   useEffect(() => {
-    const characters = "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789";
-    const scrambleText = (finalText) => {
+    if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) return;
+
+    let interval;
+    let running = false;
+    const scramble = () => {
+      if (running) return;
+      running = true;
+      const full = HEADING_LINES.join("\n");
       let iteration = 0;
-      const interval = setInterval(() => {
-        setContactHeading(finalText.split("").map((char, index) => {
-          if (char === " ") return " ";
-          if (index < iteration) return finalText[index];
-          return characters[Math.floor(Math.random() * characters.length)];
-        }).join(""));
-        iteration += 1 / 2;
-        if (iteration >= finalText.length) { clearInterval(interval); setContactHeading(finalText); }
-      }, 45);
-      return interval;
+      interval = setInterval(() => {
+        const text = full
+          .split("")
+          .map((char, i) => {
+            if (char === " " || char === "\n" || char === "'") return char;
+            if (i < iteration) return full[i];
+            return CHARACTERS[Math.floor(Math.random() * CHARACTERS.length)];
+          })
+          .join("");
+        setHeading(text.split("\n"));
+        iteration += 0.5;
+        if (iteration >= full.length) {
+          clearInterval(interval);
+          setHeading(HEADING_LINES);
+          running = false;
+        }
+      }, 40);
     };
-    const observer = new IntersectionObserver(([entry]) => {
-      if (entry.isIntersecting && !scrambleStartedRef.current) {
-        scrambleStartedRef.current = true;
-        scrambleText("OPEN THE DOOR");
-      }
-    }, { threshold: 0.35 });
-    if (contactSectionRef.current) observer.observe(contactSectionRef.current);
-    return () => observer.disconnect();
+    scrambleRef.current = scramble;
+
+    const observer = new IntersectionObserver(
+      ([entry]) => {
+        if (entry.isIntersecting) scramble();
+      },
+      { threshold: 0.35 }
+    );
+    if (sectionRef.current) observer.observe(sectionRef.current);
+
+    return () => {
+      observer.disconnect();
+      clearInterval(interval);
+    };
   }, []);
 
+  const copyEmail = async () => {
+    try {
+      await navigator.clipboard.writeText(CONTACT.email);
+      setCopied(true);
+      setTimeout(() => setCopied(false), 2000);
+    } catch {
+      window.location.href = `mailto:${CONTACT.email}`;
+    }
+  };
+
+  const links = [
+    CONTACT.github && { label: "GitHub", href: CONTACT.github, icon: <SiGithub aria-hidden="true" /> },
+    CONTACT.linkedin && { label: "LinkedIn", href: CONTACT.linkedin },
+    CONTACT.resume && { label: "Résumé ↓", href: CONTACT.resume },
+  ].filter(Boolean);
+
   return (
-    <>
-        {/* CONTACT SECTION */}
-        <section
-          ref={contactSectionRef}
-          id="contact"
-          className="relative min-h-[100dvh] overflow-hidden bg-black px-[clamp(12px,3vw,64px)] py-[clamp(12px,2vw,40px)]"
-        >
-          {/* CLOUD BACKGROUND */}
-          <div className="absolute inset-0">
-            <img
-              src="https://images.unsplash.com/photo-1534088568595-a066f410bcda?q=80&w=2400&auto=format&fit=crop"
-              alt=""
-              className="h-full w-full object-cover"
-            />
+    <section
+      ref={sectionRef}
+      id="contact"
+      className="
+        relative
+        flex
+        min-h-[100dvh]
+        flex-col
+        justify-between
+        gap-12
+        overflow-hidden
+        bg-brand
+        px-[clamp(16px,3vw,64px)]
+        py-[clamp(72px,8vw,140px)]
+        text-white
+      "
+    >
+      <div className="mx-auto flex w-full max-w-[1800px] items-center justify-between font-mono text-[11px] uppercase tracking-[0.25em] text-white/75">
+        <span>( Contact )</span>
+        <span>Got a project in mind?</span>
+      </div>
 
-            <div className="absolute inset-0 bg-black/10" />
+      {/* HEADING */}
+      <h2
+        aria-label="Let's work together"
+        onMouseEnter={() => scrambleRef.current()}
+        className="
+          mx-auto
+          w-full
+          max-w-[1800px]
+          font-display
+          text-[clamp(3.75rem,14vw,14rem)]
+          uppercase
+          leading-[1.02]
+          text-ink
+
+          lg:leading-[0.95]
+        "
+      >
+        {heading.map((line, i) => (
+          <span key={i} aria-hidden="true" className="block whitespace-nowrap">
+            {line}
+          </span>
+        ))}
+      </h2>
+
+      {/* EMAIL + LINKS */}
+      <div className="mx-auto flex w-full max-w-[1800px] flex-col gap-8 border-t border-white/35 pt-8 lg:flex-row lg:items-end lg:justify-between">
+        <div className="flex min-w-0 flex-col gap-3">
+          <span className="font-mono text-[11px] uppercase tracking-[0.25em] text-white/75">
+            Drop me a line
+          </span>
+          <div className="flex flex-wrap items-center gap-4">
+            <a
+              href={`mailto:${CONTACT.email}`}
+              className="
+                break-all
+                text-[clamp(1.6rem,4.5vw,4rem)]
+                font-semibold
+                leading-none
+                tracking-tight
+                text-white
+                underline-offset-[0.15em]
+                hover:underline
+              "
+            >
+              {CONTACT.email}
+            </a>
+            <button
+              type="button"
+              onClick={copyEmail}
+              className="
+                cursor-pointer
+                rounded-full
+                border
+                border-white/60
+                px-4
+                py-2
+                font-mono
+                text-[11px]
+                uppercase
+                tracking-[0.2em]
+                text-white
+                transition-colors
+                duration-300
+                hover:border-ink
+                hover:bg-ink
+              "
+            >
+              <span aria-live="polite">{copied ? "Copied ✓" : "Copy"}</span>
+            </button>
           </div>
+        </div>
 
-          {/* CONTACT PANEL */}
-          <div className="relative z-10 flex min-h-[calc(100dvh-1.5rem)] items-center justify-center py-2 lg:min-h-[calc(100dvh-3rem)]">
-            <div className="relative w-full max-w-[clamp(880px,68vw,1280px)] max-h-[calc(100dvh-1.5rem)] overflow-y-auto bg-[#0b0b0b] px-[clamp(20px,4vw,72px)] py-[clamp(24px,3vw,56px)] text-white lg:max-h-[calc(100dvh-3rem)] lg:overflow-hidden">
-
-              {/* TOP LABEL */}
-              <div className="mb-5 text-[12px] font-medium uppercase tracking-wide text-neutral-400">
-                (LEAVE YOUR DETAILS)
-              </div>
-
-              {/* SCRAMBLE HEADING */}
-              <h2 className="min-h-[1.1em] text-[clamp(2.7rem,12vw,6rem)] font-medium leading-[0.9] tracking-[-0.06em] text-[#f3f1ed] sm:text-[clamp(3rem,6.5vw,6rem)]">
-                {contactHeading}
-              </h2>
-
-              {/* EMAIL */}
-              <div className="mt-5 flex flex-wrap items-center gap-x-2 gap-y-2 text-sm text-neutral-400 sm:mt-6 sm:gap-x-3 sm:text-[19px]">
-                <span>Or just write:</span>
-
-                <a
-                  href="mailto:pamidordesign@gmail.com"
-                  className="border-b border-neutral-500 pb-1 text-white transition-colors duration-300 hover:border-white"
-                >
-                  tusharsethiya023@gmail.com
-                </a>
-              </div>
-
-              {/* FORM */}
-              <form
-                onSubmit={(e) => e.preventDefault()}
-                className="mt-6 sm:mt-8"
+        {links.length > 0 && (
+          <div className="flex flex-wrap gap-3">
+            {links.map((link) => (
+              <a
+                key={link.label}
+                href={link.href}
+                target="_blank"
+                rel="noreferrer"
+                className="
+                  flex
+                  items-center
+                  gap-2
+                  rounded-full
+                  bg-ink
+                  px-6
+                  py-3
+                  text-sm
+                  font-medium
+                  text-white
+                  transition-colors
+                  duration-300
+                  hover:bg-white
+                  hover:text-ink
+                "
               >
-                {/* NAME + EMAIL */}
-                <div className="grid grid-cols-1 gap-7 md:grid-cols-2">
-
-                  {/* NAME */}
-                  <div>
-                    <label className="mb-3 block text-[11px] font-medium uppercase tracking-wide text-neutral-400">
-                      Name
-                    </label>
-
-                    <input
-                      type="text"
-                      placeholder="Your full name"
-                      className="w-full border-0 border-b border-neutral-700 bg-transparent pb-3 text-base text-white outline-none placeholder:text-neutral-500 transition-colors duration-300 focus:border-white sm:text-[18px]"
-                    />
-                  </div>
-
-                  {/* EMAIL */}
-                  <div>
-                    <label className="mb-3 block text-[11px] font-medium uppercase tracking-wide text-neutral-400">
-                      Email
-                    </label>
-
-                    <input
-                      type="email"
-                      placeholder="name@company.com"
-                      className="w-full border-0 border-b border-neutral-700 bg-transparent pb-3 text-base text-white outline-none placeholder:text-neutral-500 transition-colors duration-300 focus:border-white sm:text-[18px]"
-                    />
-                  </div>
-
-                  {/* PHONE */}
-                  <div>
-                    <label className="mb-3 block text-[11px] font-medium uppercase tracking-wide text-neutral-400">
-                      Phone
-                    </label>
-
-                    <input
-                      type="tel"
-                      placeholder="+91"
-                      className="w-full border-0 border-b border-neutral-700 bg-transparent pb-3 text-base text-white outline-none placeholder:text-neutral-500 transition-colors duration-300 focus:border-white sm:text-[18px]"
-                    />
-                  </div>
-
-                  {/* REASON */}
-                  <div>
-                    <label className="mb-3 block text-[11px] font-medium uppercase tracking-wide text-neutral-400">
-                      Reason
-                    </label>
-
-                    <div className="relative">
-                      <select
-                        defaultValue=""
-                        className="w-full appearance-none border-0 border-b border-neutral-700 bg-transparent pb-3 text-[18px] text-white outline-none transition-colors duration-300 focus:border-white"
-                      >
-                        <option
-                          value=""
-                          disabled
-                          className="bg-[#0b0b0b]"
-                        >
-                          Select reason
-                        </option>
-
-                        <option
-                          value="freelance"
-                          className="bg-[#0b0b0b]"
-                        >
-                          Freelance project
-                        </option>
-
-                        <option
-                          value="collaboration"
-                          className="bg-[#0b0b0b]"
-                        >
-                          Collaboration
-                        </option>
-
-                        <option
-                          value="job"
-                          className="bg-[#0b0b0b]"
-                        >
-                          Job opportunity
-                        </option>
-
-                        <option
-                          value="other"
-                          className="bg-[#0b0b0b]"
-                        >
-                          Something else
-                        </option>
-                      </select>
-
-                      <span className="pointer-events-none absolute right-1 top-1/2 -translate-y-1/2 text-lg text-white">
-                        ↓
-                      </span>
-                    </div>
-                  </div>
-                </div>
-
-                {/* MESSAGE */}
-                <div className="mt-6 sm:mt-8">
-                  <label className="mb-3 block text-[11px] font-medium uppercase tracking-wide text-neutral-400">
-                    Message
-                  </label>
-
-                  <textarea
-                    rows="1"
-                    placeholder="A few words"
-                    className="w-full resize-none border-0 border-b border-neutral-700 bg-transparent pb-3 text-[18px] text-white outline-none placeholder:text-neutral-500 transition-colors duration-300 focus:border-white"
-                  />
-                </div>
-
-                {/* ACTION */}
-                <div className="mt-7 flex flex-col gap-4 sm:mt-8 sm:flex-row sm:items-center">
-
-                  <button
-                    type="submit"
-                    className="group flex w-fit items-center gap-7 bg-[#f3f1ed] px-5 py-3.5 text-[15px] font-medium text-black transition-all duration-300 hover:bg-white"
-                  >
-                    <span>Send Details</span>
-
-                    <span className="text-xl transition-transform duration-300 group-hover:translate-x-1">
-                      →
-                    </span>
-                  </button>
-
-                  <p className="text-[12px] text-neutral-500">
-                    No spam. A real reply, usually the same day.
-                  </p>
-                </div>
-
-                {/* PRIVACY */}
-                <p className="mt-3 text-[12px] text-neutral-500">
-                  Sent details land in my inbox and nowhere else -
-                  <a
-                    href="#privacy"
-                    className="ml-1 border-b border-neutral-600 transition-colors duration-300 hover:border-white hover:text-white"
-                  >
-                    privacy policy
-                  </a>
-                </p>
-              </form>
-            </div>
+                {link.icon}
+                {link.label}
+              </a>
+            ))}
           </div>
-
-          {/* W. NOMINEE BADGE */}
-          {/* <div className="absolute right-0 top-1/2 z-20 hidden -translate-y-1/2 bg-black px-5 py-6 text-white sm:flex sm:flex-col sm:items-center sm:gap-4">
-            <span className="font-bold text-2xl tracking-widest font-mono">
-              W.
-            </span>
-
-            <span className="text-[11px] font-medium uppercase tracking-widest text-white [writing-mode:vertical-lr] rotate-180">
-              Nominee
-            </span>
-          </div> */}
-        </section>
-    </>
+        )}
+      </div>
+    </section>
   );
 }
