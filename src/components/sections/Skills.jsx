@@ -1,309 +1,3 @@
-// import { useEffect, useRef, useState } from "react";
-
-// export default function Skills() {
-//   const [activeSkill, setActiveSkill] = useState(null);
-
-//   const skillImageRef = useRef(null);
-
-//   const skillTargetRef = useRef({ x: 0, y: 0 });
-//   const skillCurrentRef = useRef({ x: 0, y: 0 });
-
-//   useEffect(() => {
-//     let animationFrame;
-
-//     const animateSkillImage = () => {
-//       const current = skillCurrentRef.current;
-//       const target = skillTargetRef.current;
-
-//       current.x += (target.x - current.x) * 0.12;
-//       current.y += (target.y - current.y) * 0.12;
-
-//       if (skillImageRef.current) {
-//         skillImageRef.current.style.left = `${current.x}px`;
-//         skillImageRef.current.style.top = `${current.y}px`;
-//       }
-
-//       animationFrame = requestAnimationFrame(animateSkillImage);
-//     };
-
-//     animationFrame = requestAnimationFrame(animateSkillImage);
-
-//     return () => cancelAnimationFrame(animationFrame);
-//   }, []);
-
-//   const skills = [
-//     {
-//       number: "01",
-//       title: "Product Design",
-//       description:
-//         "From “we have an idea” to flows, prototypes and systems ready to grow.",
-//       image:
-//         "https://images.unsplash.com/photo-1558655146-9f40138edfeb?q=80&w=1200&auto=format&fit=crop",
-//     },
-//     {
-//       number: "02",
-//       title: "Brand & Art Direction",
-//       description:
-//         "Identities with a point of view, built to be recognized, remembered and used.",
-//       image:
-//         "https://images.unsplash.com/photo-1561070791-2526d30994b5?q=80&w=1200&auto=format&fit=crop",
-//     },
-//     {
-//       number: "03",
-//       title: "UX | UI",
-//       description:
-//         "Clear interfaces for real behavior, weird edge cases and every screen in between.",
-//       image:
-//         "https://images.unsplash.com/photo-1559028012-481c04fa702d?q=80&w=1200&auto=format&fit=crop",
-//     },
-//     {
-//       number: "04",
-//       title: "Motion & 3D",
-//       description:
-//         "Motion, interaction and dimensional details that make digital experiences feel alive.",
-//       image:
-//         "https://images.unsplash.com/photo-1634017839464-5c339ebe3cb4?q=80&w=1200&auto=format&fit=crop",
-//     },
-//   ];
-
-//   return (
-//     <section
-//       id="skills"
-//       className="
-//         relative
-//         min-h-[100dvh]
-//         overflow-hidden
-//         bg-[#111111]
-//         px-[clamp(16px,3vw,64px)]
-//         py-[clamp(72px,8vw,160px)]
-//         text-white
-//       "
-//     >
-//       <div className="mx-auto max-w-[1470px]">
-
-//         {/* HEADER */}
-//         <div className="mb-[clamp(48px,6vw,112px)]">
-//           <h2
-//             className="
-//               text-[clamp(4rem,9vw,11rem)]
-//               font-medium
-//               leading-[0.8]
-//               tracking-[-0.07em]
-//             "
-//           >
-//             Skillset
-//           </h2>
-
-//           <div className="mt-8 border-t border-white/30 sm:mt-12" />
-//         </div>
-
-//         {/* SKILL LIST */}
-//         <div className="relative">
-//           {skills.map((skill, index) => {
-//             const isActive = activeSkill === index;
-
-//             return (
-//               <div
-//                 key={skill.title}
-//                 className="
-//                   relative
-//                   flex
-//                   min-h-[210px]
-//                   flex-col
-//                   items-start
-//                   justify-center
-//                   border-b
-//                   border-white/30
-//                   py-8
-
-//                   sm:min-h-[230px]
-
-//                   lg:min-h-[200px]
-//                   lg:flex-row
-//                   lg:items-center
-//                   lg:justify-start
-//                   lg:py-0
-
-//                   touch-pan-y
-//                   select-none
-//                 "
-//                 onClick={() => setActiveSkill(index)}
-//                 onMouseEnter={(e) => {
-//                   setActiveSkill(index);
-
-//                   skillTargetRef.current = {
-//                     x: e.clientX,
-//                     y: e.clientY,
-//                   };
-
-//                   skillCurrentRef.current = {
-//                     x: e.clientX,
-//                     y: e.clientY,
-//                   };
-//                 }}
-//                 onMouseMove={(e) => {
-//                   skillTargetRef.current = {
-//                     x: e.clientX,
-//                     y: e.clientY,
-//                   };
-//                 }}
-//                 onMouseLeave={() => {
-//                   setActiveSkill(null);
-//                 }}
-//                 onPointerDown={(e) => {
-//                   if (e.pointerType === "touch") {
-//                     setActiveSkill(index);
-//                   }
-//                 }}
-//                 onPointerEnter={(e) => {
-//                   if (e.pointerType === "touch") {
-//                     setActiveSkill(index);
-//                   }
-//                 }}
-//                 onPointerMove={(e) => {
-//                   if (
-//                     e.pointerType === "touch" ||
-//                     e.buttons === 1
-//                   ) {
-//                     setActiveSkill(index);
-//                   }
-//                 }}
-//               >
-
-//                 {/* NUMBER */}
-//                 <span
-//                   className={`
-//                     absolute
-//                     left-0
-//                     top-7
-//                     text-sm
-//                     transition-colors
-//                     duration-500
-
-//                     lg:top-1/2
-//                     lg:-translate-y-1/2
-
-//                     ${
-//                       isActive
-//                         ? "text-white"
-//                         : "text-white/30"
-//                     }
-//                   `}
-//                 >
-//                   {skill.number}
-//                 </span>
-
-//                 {/* TITLE */}
-//                 <h3
-//                   className={`
-//                     ml-9
-//                     pr-2
-
-//                     text-[clamp(2.3rem,6vw,4.5rem)]
-//                     font-medium
-//                     leading-[0.9]
-//                     tracking-[-0.05em]
-
-//                     transition-colors
-//                     duration-500
-
-//                     sm:ml-12
-
-//                     lg:ml-24
-//                     lg:pr-0
-//                     lg:leading-none
-
-//                     ${
-//                       isActive
-//                         ? "text-white"
-//                         : "text-white/35"
-//                     }
-//                   `}
-//                 >
-//                   {skill.title}
-//                 </h3>
-
-//                 {/* DESCRIPTION */}
-//                 <p
-//                   className={`
-//                     relative
-//                     right-auto
-//                     mt-5
-//                     ml-9
-//                     max-w-[90%]
-
-//                     text-sm
-//                     leading-relaxed
-
-//                     transition-all
-//                     duration-500
-
-//                     sm:ml-12
-//                     sm:max-w-[82%]
-//                     sm:text-base
-
-//                     lg:absolute
-//                     lg:right-0
-//                     lg:mt-0
-//                     lg:ml-0
-//                     lg:max-w-[38%]
-
-//                     ${
-//                       isActive
-//                         ? "translate-x-0 text-white/80 opacity-100"
-//                         : "translate-x-3 text-white/30 opacity-70"
-//                     }
-//                   `}
-//                 >
-//                   {skill.description}
-//                 </p>
-//               </div>
-//             );
-//           })}
-//         </div>
-//       </div>
-
-//       {/* FOLLOWING IMAGE — DESKTOP ONLY */}
-//       <div
-//         ref={skillImageRef}
-//         className={`
-//           pointer-events-none
-//           fixed
-//           left-0
-//           top-0
-//           z-[100]
-//           hidden
-//           aspect-[4/3]
-//           w-[clamp(280px,18vw,520px)]
-//           -translate-x-1/2
-//           -translate-y-1/2
-//           overflow-hidden
-//           transition-opacity
-//           duration-300
-
-//           lg:block
-
-//           ${
-//             activeSkill !== null
-//               ? "opacity-100"
-//               : "opacity-0"
-//           }
-//         `}
-//       >
-//         {activeSkill !== null && (
-//           <img
-//             src={skills[activeSkill].image}
-//             alt=""
-//             className="h-full w-full object-cover"
-//           />
-//         )}
-//       </div>
-//     </section>
-//   );
-// }
-
-
-
 import { useEffect, useRef, useState } from "react";
 
 export default function Skills() {
@@ -317,36 +11,32 @@ export default function Skills() {
 
   const skills = [
     {
-      number: "01",
-      title: "Product Design",
+      title: "Frontend Development",
       description:
-        "From “we have an idea” to flows, prototypes and systems ready to grow.",
+        "Responsive, accessible interfaces built with HTML, CSS, JavaScript and Tailwind CSS.",
       image:
-        "https://images.unsplash.com/photo-1558655146-9f40138edfeb?q=80&w=1200&auto=format&fit=crop",
+        "https://images.unsplash.com/photo-1555066931-4365d14bab8c?q=80&w=1200&auto=format&fit=crop",
     },
     {
-      number: "02",
-      title: "Brand & Art Direction",
+      title: "Backend & APIs",
       description:
-        "Identities with a point of view, built to be recognized, remembered and used.",
+        "REST APIs and server logic with Node.js and Express, built to be fast and reliable.",
       image:
-        "https://images.unsplash.com/photo-1561070791-2526d30994b5?q=80&w=1200&auto=format&fit=crop",
+        "https://images.unsplash.com/photo-1558494949-ef010cbdcc31?q=80&w=1200&auto=format&fit=crop",
     },
     {
-      number: "03",
-      title: "UX | UI",
+      title: "Databases",
       description:
-        "Clear interfaces for real behavior, weird edge cases and every screen in between.",
+        "MongoDB data models that keep apps quick today and easy to grow tomorrow.",
       image:
-        "https://images.unsplash.com/photo-1559028012-481c04fa702d?q=80&w=1200&auto=format&fit=crop",
+        "https://images.unsplash.com/photo-1544383835-bda2bc66a55d?q=80&w=1200&auto=format&fit=crop",
     },
     {
-      number: "04",
-      title: "Motion & 3D",
+      title: "Full-Stack Web Apps",
       description:
-        "Motion, interaction and dimensional details that make digital experiences feel alive.",
+        "From idea to deployment: complete web apps with a clean frontend and a solid backend.",
       image:
-        "https://images.unsplash.com/photo-1634017839464-5c339ebe3cb4?q=80&w=1200&auto=format&fit=crop",
+        "https://images.unsplash.com/photo-1498050108023-c5249f4df085?q=80&w=1200&auto=format&fit=crop",
     },
   ];
 
@@ -424,7 +114,7 @@ export default function Skills() {
         relative
         min-h-[100dvh]
         overflow-hidden
-        bg-[#111111]
+        bg-ink
         px-[clamp(16px,3vw,64px)]
         py-[clamp(72px,8vw,160px)]
         text-white
@@ -434,15 +124,18 @@ export default function Skills() {
 
         {/* HEADER */}
         <div className="mb-[clamp(48px,6vw,112px)]">
+          <span className="mb-4 block font-mono text-[11px] uppercase tracking-[0.25em] text-white/50">
+            ( Services )
+          </span>
           <h2
             className="
-              text-[clamp(4rem,9vw,11rem)]
-              font-medium
-              leading-[0.8]
-              tracking-[-0.07em]
+              font-display
+              text-[clamp(3.5rem,9vw,8.5rem)]
+              uppercase
+              leading-[0.85]
             "
           >
-            Skillset
+            What I <span className="text-brand">do</span>
           </h2>
 
           <div
@@ -516,55 +209,27 @@ export default function Skills() {
                   setActiveSkill(null);
                 }}
               >
-                {/* NUMBER */}
-                <span
-                  className={`
-                    absolute
-                    left-0
-                    top-7
-
-                    text-sm
-
-                    transition-colors
-                    duration-500
-
-                    lg:top-1/2
-                    lg:-translate-y-1/2
-
-                    ${
-                      isActive
-                        ? "text-white"
-                        : "text-white/30"
-                    }
-                  `}
-                >
-                  {skill.number}
-                </span>
-
-                {/* TITLE */}
+                {/* TITLE — turns red while active */}
                 <h3
                   className={`
-                    ml-9
                     pr-2
 
-                    text-[clamp(2.3rem,6vw,4.5rem)]
-                    font-medium
+                    font-display
+                    text-[clamp(2.3rem,6vw,5rem)]
+                    uppercase
                     leading-[0.9]
-                    tracking-[-0.05em]
 
-                    transition-colors
+                    transition-[color,translate]
                     duration-500
 
-                    sm:ml-12
-
-                    lg:ml-24
+                    lg:max-w-[58%]
                     lg:pr-0
                     lg:leading-none
 
                     ${
                       isActive
-                        ? "text-white"
-                        : "text-white/35"
+                        ? "translate-x-3 text-brand"
+                        : "translate-x-0 text-white/35"
                     }
                   `}
                 >
@@ -577,7 +242,6 @@ export default function Skills() {
                     relative
                     right-auto
                     mt-5
-                    ml-9
 
                     max-w-[90%]
 
@@ -587,7 +251,6 @@ export default function Skills() {
                     transition-all
                     duration-500
 
-                    sm:ml-12
                     sm:max-w-[82%]
                     sm:text-base
 
