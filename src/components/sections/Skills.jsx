@@ -3,40 +3,28 @@ import { useEffect, useRef, useState } from "react";
 export default function Skills() {
   const [activeSkill, setActiveSkill] = useState(null);
 
-  const skillImageRef = useRef(null);
   const skillRefs = useRef([]);
-
-  const skillTargetRef = useRef({ x: 0, y: 0 });
-  const skillCurrentRef = useRef({ x: 0, y: 0 });
 
   const skills = [
     {
       title: "Frontend Development",
       description:
         "Responsive, accessible interfaces built with HTML, CSS, JavaScript and Tailwind CSS.",
-      image:
-        "https://images.unsplash.com/photo-1555066931-4365d14bab8c?q=80&w=1200&auto=format&fit=crop",
     },
     {
       title: "Backend & APIs",
       description:
         "REST APIs and server logic with Node.js and Express, built to be fast and reliable.",
-      image:
-        "https://images.unsplash.com/photo-1558494949-ef010cbdcc31?q=80&w=1200&auto=format&fit=crop",
     },
     {
       title: "Databases",
       description:
         "MongoDB data models that keep apps quick today and easy to grow tomorrow.",
-      image:
-        "https://images.unsplash.com/photo-1544383835-bda2bc66a55d?q=80&w=1200&auto=format&fit=crop",
     },
     {
       title: "Full-Stack Web Apps",
       description:
         "From idea to deployment: complete web apps with a clean frontend and a solid backend.",
-      image:
-        "https://images.unsplash.com/photo-1498050108023-c5249f4df085?q=80&w=1200&auto=format&fit=crop",
     },
   ];
 
@@ -76,34 +64,6 @@ export default function Skills() {
 
     return () => {
       observers.forEach((observer) => observer.disconnect());
-    };
-  }, []);
-
-  /* ==================================================
-     DESKTOP FLOATING IMAGE ANIMATION
-  ================================================== */
-  useEffect(() => {
-    let animationFrame;
-
-    const animateSkillImage = () => {
-      const current = skillCurrentRef.current;
-      const target = skillTargetRef.current;
-
-      current.x += (target.x - current.x) * 0.12;
-      current.y += (target.y - current.y) * 0.12;
-
-      if (skillImageRef.current) {
-        skillImageRef.current.style.left = `${current.x}px`;
-        skillImageRef.current.style.top = `${current.y}px`;
-      }
-
-      animationFrame = requestAnimationFrame(animateSkillImage);
-    };
-
-    animationFrame = requestAnimationFrame(animateSkillImage);
-
-    return () => {
-      cancelAnimationFrame(animationFrame);
     };
   }, []);
 
@@ -186,24 +146,8 @@ export default function Skills() {
                   select-none
                 "
                 /* DESKTOP HOVER */
-                onMouseEnter={(event) => {
+                onMouseEnter={() => {
                   setActiveSkill(index);
-
-                  skillTargetRef.current = {
-                    x: event.clientX,
-                    y: event.clientY,
-                  };
-
-                  skillCurrentRef.current = {
-                    x: event.clientX,
-                    y: event.clientY,
-                  };
-                }}
-                onMouseMove={(event) => {
-                  skillTargetRef.current = {
-                    x: event.clientX,
-                    y: event.clientY,
-                  };
                 }}
                 onMouseLeave={() => {
                   setActiveSkill(null);
@@ -273,56 +217,6 @@ export default function Skills() {
             );
           })}
         </div>
-      </div>
-
-      {/* ==================================================
-          DESKTOP FLOATING IMAGE
-          Only visible on LG and above
-      ================================================== */}
-      <div
-        ref={skillImageRef}
-        className={`
-          pointer-events-none
-
-          fixed
-          left-0
-          top-0
-
-          z-[100]
-
-          hidden
-
-          aspect-[4/3]
-          w-[clamp(280px,18vw,520px)]
-
-          -translate-x-1/2
-          -translate-y-1/2
-
-          overflow-hidden
-
-          transition-opacity
-          duration-300
-
-          lg:block
-
-          ${
-            activeSkill !== null
-              ? "opacity-100"
-              : "opacity-0"
-          }
-        `}
-      >
-        {activeSkill !== null && (
-          <img
-            src={skills[activeSkill].image}
-            alt=""
-            className="
-              h-full
-              w-full
-              object-cover
-            "
-          />
-        )}
       </div>
     </section>
   );
