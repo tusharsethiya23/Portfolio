@@ -17,7 +17,7 @@ export default function Sidebar({
   ];
 
   return (
-    <div className="fixed inset-0 z-50 overflow-hidden">
+    <div className="fixed inset-0 z-50 overflow-hidden" onKeyDown={(e) => e.key === "Escape" && closeMenu()}>
 
       {/* MENU PANEL */}
       <div
@@ -68,6 +68,9 @@ export default function Sidebar({
                   leading-[0.9]
                   tracking-tight
                   text-[#111111]
+                  hover:text-brand
+                  focus-visible:text-brand
+                  focus-visible:outline-none
                   transition-all
                   duration-500
                   ease-out
@@ -85,6 +88,10 @@ export default function Sidebar({
               >
                 <span className="inline-block transition-transform duration-500 group-hover:translate-x-3">
                   {item.name}
+                  {/* page order */}
+                  <sup className="ml-2 align-super font-mono text-[clamp(10px,0.9vw,13px)] font-normal tracking-widest text-brand">
+                    0{index + 1}
+                  </sup>
                 </span>
               </button>
             ))}
@@ -95,6 +102,9 @@ export default function Sidebar({
           <div
             className={`
               mt-auto
+              flex
+              flex-col
+              gap-3
               border-t
               border-neutral-300
               pt-4
@@ -102,6 +112,10 @@ export default function Sidebar({
               text-neutral-500
               transition-all
               duration-500
+
+              sm:flex-row
+              sm:items-end
+              sm:justify-between
               ${
                 sidebarAnimating
                   ? "translate-y-0 opacity-100"
@@ -114,22 +128,30 @@ export default function Sidebar({
                 : "0ms",
             }}
           >
-            <p className="font-mono uppercase tracking-widest">
-              Get in touch
-            </p>
+            <div>
+              <p className="font-mono uppercase tracking-widest">
+                Get in touch
+              </p>
 
-            <a
-              href="mailto:tushar@example.com"
-              className="
-                mt-1
-                inline-block
-                text-sm
-                text-black
-                hover:underline
-              "
-            >
-              tusharsethiya023@example.com
-            </a>
+              <a
+                href="mailto:tushar@example.com"
+                className="
+                  mt-1
+                  inline-block
+                  text-sm
+                  text-black
+                  underline-offset-4
+                  hover:text-brand
+                  hover:underline
+                "
+              >
+                tusharsethiya023@example.com
+              </a>
+            </div>
+
+            <p className="font-mono uppercase tracking-widest">
+              © 2026 Tushar Sethiya · Frontend Developer
+            </p>
           </div>
 
         </div>

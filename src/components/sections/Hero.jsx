@@ -4,7 +4,7 @@ import gsap from "gsap";
 const PORTRAIT =
   "https://ik.imagekit.io/tusharsethiya023/Tushar%20Images/portfolio%20transparent.png?updatedAt=1790599531637";
 
-const STACK = ["React", "JavaScript", "Tailwind CSS", "GSAP"];
+const STACK = ["HTML", "CSS", "JavaScript", "Tailwind CSS", "Node.js", "Express", "MongoDB", "Git"];
 
 function CtaButtons({ scrollToSection, className = "" }) {
   return (
