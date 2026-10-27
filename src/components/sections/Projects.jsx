@@ -1,109 +1,172 @@
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useRef } from "react";
+import { SiGithub } from "react-icons/si";
 
-export default function Projects() {
-  const [hoveredProject, setHoveredProject] = useState(0);
-  const projectRefs = useRef([]);
+// Cards cycle through the site palette; titles on red stay black
+const THEMES = [
+  {
+    card: "bg-ink text-white",
+    title: "text-white",
+    muted: "text-white/60",
+    body: "text-white/75",
+    badge: "border-white/25 text-white",
+    primary: "bg-brand text-white hover:bg-white hover:text-ink",
+    secondary: "border-white/40 text-white hover:bg-white hover:text-ink",
+  },
+  {
+    card: "bg-brand text-white",
+    title: "text-ink",
+    muted: "text-white/75",
+    body: "text-white/90",
+    badge: "border-white/45 text-white",
+    primary: "bg-ink text-white hover:bg-white hover:text-ink",
+    secondary: "border-white/60 text-white hover:bg-ink hover:border-ink",
+  },
+  {
+    card: "bg-white text-ink border border-neutral-200",
+    title: "text-ink",
+    muted: "text-neutral-500",
+    body: "text-neutral-600",
+    badge: "border-neutral-300 text-ink",
+    primary: "bg-brand text-white hover:bg-ink",
+    secondary: "border-neutral-300 text-ink hover:bg-ink hover:text-white hover:border-ink",
+  },
+];
 
-  const projects = [
-    {
-      id: 1,
-      title: "ArenaX",
-      role: "Frontend · React · Product",
-      timeline: "6 Months",
-      year: "2026",
-      team: "Personal Project",
-      image:
-        "https://images.unsplash.com/photo-1540747913346-19e32dc3e97e?q=80&w=1200&auto=format&fit=crop",
-      link: "",
-    },
-    {
-      id: 2,
-      title: "Figcoms",
-      role: "Brand · Product · UX / UI",
-      timeline: "12 Months",
-      year: "2025",
-      team: "In-House Studio",
-      image:
-        "https://images.unsplash.com/photo-1558655146-9f40138edfeb?q=80&w=1200&auto=format&fit=crop",
-      link: "",
-    },
-    {
-      id: 3,
-      title: "Task Management",
-      role: "React · Tailwind · Role Based Access",
-      timeline: "8 Months",
-      year: "2026",
-      team: "Personal Project",
-      image:
-        "https://images.unsplash.com/photo-1552664730-d307ca884978?q=80&w=1200&auto=format&fit=crop",
-      link: "",
-    },
-    {
-      id: 4,
-      title: "Photo Editor",
-      role: "React · Image Editing · UI",
-      timeline: "6 Months",
-      year: "2025",
-      team: "Personal Project",
-      image:
-        "https://images.unsplash.com/photo-1558655146-d09347e92766?q=80&w=1200&auto=format&fit=crop",
-      link: "",
-    },
-  ];
+const HEADER_OFFSET = 88; // clears the fixed header
+const STACK_STEP = 22; // each card sticks a little lower than the one before
 
-  /* --------------------------------------------------
-     SM + MD:
-     Activate project while scrolling/swiping
-  -------------------------------------------------- */
+function ProjectCard({ project, index, cardRef }) {
+  const t = THEMES[index % THEMES.length];
+  const hasLinks = project.link || project.github;
+
+  return (
+    <article
+      ref={cardRef}
+      className={`
+        group
+        flex
+        h-full
+        origin-top
+        flex-col
+        gap-5
+        overflow-hidden
+        rounded-3xl
+        p-4
+        shadow-[0_-20px_60px_-30px_rgba(0,0,0,0.35)]
+        will-change-transform
+        ${t.card}
+
+        sm:p-6
+        md:grid
+        md:grid-cols-12
+        md:gap-[clamp(24px,3vw,56px)]
+        md:p-[clamp(24px,3vw,48px)]
+      `}
+    >
+      {/* TEXT */}
+      <div className="order-2 flex min-h-0 flex-1 flex-col gap-4 md:order-1 md:col-span-5 md:justify-between">
+        <div className={`flex flex-wrap gap-x-4 gap-y-1 font-mono text-[11px] uppercase tracking-[0.2em] ${t.muted}`}>
+          <span>{project.year}</span>
+          <span>{project.team}</span>
+          <span>{project.timeline}</span>
+        </div>
+
+        <div className="flex flex-col gap-4">
+          <h3 className={`font-display text-[clamp(2.5rem,7vw,6.5rem)] uppercase leading-[0.88] ${t.title}`}>
+            {project.title}
+          </h3>
+          <p className={`max-w-md text-sm leading-relaxed sm:text-base ${t.body}`}>
+            {project.description}
+          </p>
+          <ul className="flex flex-wrap gap-2">
+            {project.stack.map((tech) => (
+              <li key={tech} className={`rounded-full border px-3 py-1 text-xs font-medium ${t.badge}`}>
+                {tech}
+              </li>
+            ))}
+          </ul>
+        </div>
+
+        <div className="flex flex-wrap items-center gap-3">
+          {project.link && (
+            <a
+              href={project.link}
+              target="_blank"
+              rel="noreferrer"
+              className={`rounded-full px-5 py-2.5 text-sm font-medium transition-colors duration-300 ${t.primary}`}
+            >
+              View live ↗
+            </a>
+          )}
+          {project.github && (
+            <a
+              href={project.github}
+              target="_blank"
+              rel="noreferrer"
+              className={`flex items-center gap-2 rounded-full border px-5 py-2.5 text-sm font-medium transition-colors duration-300 ${t.secondary}`}
+            >
+              <SiGithub aria-hidden="true" /> GitHub ↗
+            </a>
+          )}
+          {!hasLinks && (
+            <span className={`font-mono text-[11px] uppercase tracking-[0.2em] ${t.muted}`}>
+              Links coming soon
+            </span>
+          )}
+        </div>
+      </div>
+
+      {/* SCREENSHOT */}
+      <div className="order-1 h-[38%] shrink-0 overflow-hidden rounded-2xl md:order-2 md:col-span-7 md:h-full">
+        <img
+          src={project.image}
+          alt={`${project.title} preview`}
+          loading="lazy"
+          className="h-full w-full object-cover transition-transform duration-700 ease-out group-hover:scale-105"
+        />
+      </div>
+    </article>
+  );
+}
+
+export default function Projects({ projects }) {
+  const wrapperRefs = useRef([]);
+  const cardRefs = useRef([]);
+
+  /*
+    As the next card slides over a card, the one underneath
+    shrinks and dims slightly, so the deck reads as a stack.
+  */
   useEffect(() => {
-    const isSmallMediumScreen = window.matchMedia(
-      "(max-width: 1023px)"
-    );
+    let frame;
 
-    if (!isSmallMediumScreen.matches) {
-      return;
-    }
+    const update = () => {
+      cardRefs.current.forEach((card, i) => {
+        const next = wrapperRefs.current[i + 1];
+        if (!card || !next) return;
 
-    const observers = [];
+        const rect = card.getBoundingClientRect();
+        const covered = Math.min(1, Math.max(0, (rect.bottom - next.getBoundingClientRect().top) / rect.height));
+        card.style.transform = `scale(${1 - covered * 0.06})`;
+        card.style.filter = `brightness(${1 - covered * 0.35})`;
+      });
+    };
 
-    projectRefs.current.forEach((element, index) => {
-      if (!element) return;
+    const onScroll = () => {
+      cancelAnimationFrame(frame);
+      frame = requestAnimationFrame(update);
+    };
 
-      const observer = new IntersectionObserver(
-        ([entry]) => {
-          if (entry.isIntersecting) {
-            setHoveredProject(index);
-          }
-        },
-        {
-          threshold: 0.4,
-          rootMargin: "-10% 0px -10% 0px",
-        }
-      );
-
-      observer.observe(element);
-      observers.push(observer);
-    });
+    window.addEventListener("scroll", onScroll, { passive: true });
+    window.addEventListener("resize", onScroll);
+    update();
 
     return () => {
-      observers.forEach((observer) => observer.disconnect());
+      cancelAnimationFrame(frame);
+      window.removeEventListener("scroll", onScroll);
+      window.removeEventListener("resize", onScroll);
     };
-  }, []);
-
-  /* --------------------------------------------------
-     DRAG / SWIPE INTERACTION
-  -------------------------------------------------- */
-  const handlePointerDown = (event, index) => {
-    if (event.pointerType === "touch") {
-      setHoveredProject(index);
-    }
-  };
-
-  const handlePointerMove = (event, index) => {
-    if (event.pointerType === "touch" || event.buttons === 1) {
-      setHoveredProject(index);
-    }
-  };
+  }, [projects.length]);
 
   return (
     <section
@@ -112,435 +175,42 @@ export default function Projects() {
         relative
         w-full
         bg-[#F3F2EE]
-
         px-[clamp(16px,3vw,64px)]
         py-[clamp(72px,8vw,160px)]
       "
     >
       <div className="mx-auto max-w-[1600px]">
-
         {/* HEADER */}
-        <div
-          className="
-            mb-[clamp(32px,4vw,64px)]
-          "
-        >
-          <h2
-            className="
-              max-w-full
-
-              text-[clamp(3.4rem,9vw,10rem)]
-              font-medium
-              leading-[0.82]
-              tracking-[-0.07em]
-
-              text-black
-            "
-          >
-            Selected Projects
-          </h2>
-
-          <div
-            className="
-              mt-6
-              sm:mt-8
-              md:mt-8
-
-              border-t
-              border-neutral-300
-            "
-          />
+        <div className="mb-[clamp(32px,4vw,64px)] flex flex-col gap-4 border-b border-neutral-300 pb-6 sm:pb-8 md:flex-row md:items-end md:justify-between">
+          <div className="flex flex-col gap-4">
+            <span className="font-mono text-[11px] uppercase tracking-[0.25em] text-neutral-500">
+              ( Projects )
+            </span>
+            <h2 className="font-display text-[clamp(3.5rem,9vw,8.5rem)] uppercase leading-[0.85] text-ink">
+              Selected <span className="text-brand">work</span>
+            </h2>
+          </div>
+          <p className="max-w-xs text-sm leading-relaxed text-neutral-600 md:text-right">
+            A few things I've designed and built. Scroll to flip through the stack.
+          </p>
         </div>
 
-        {/* PROJECTS */}
-        <div className="w-full">
-          {projects.map((project, index) => {
-            const isHovered = hoveredProject === index;
-
-            return (
-              <article
-                key={project.id}
-                ref={(element) => {
-                  projectRefs.current[index] = element;
-                }}
-                onMouseEnter={() => setHoveredProject(index)}
-                onPointerDown={(event) =>
-                  handlePointerDown(event, index)
-                }
-                onPointerMove={(event) =>
-                  handlePointerMove(event, index)
-                }
-                className={`
-                  group
-                  relative
-                  w-full
-                  overflow-visible
-
-                  border-b
-                  border-neutral-300
-
-                  transition-all
-                  duration-700
-                  ease-[cubic-bezier(0.16,1,0.3,1)]
-
-                  min-h-[520px]
-
-                  md:min-h-0
-
-                  ${
-                    isHovered
-                      ? "md:h-[410px] lg:h-[320px]"
-                      : "md:h-[150px] lg:h-[110px]"
-                  }
-                `}
-              >
-
-                {/* PROJECT TITLE */}
-                <div
-                  className="
-                    absolute
-                    left-0
-                    top-5
-                    z-20
-
-                    sm:top-6
-                    md:top-6
-                  "
-                >
-                  <h3
-                    className={`
-                      text-[clamp(2.7rem,10vw,5rem)]
-                      sm:text-[clamp(3rem,5vw,5rem)]
-
-                      font-medium
-                      leading-none
-                      tracking-[-0.05em]
-
-                      transition-all
-                      duration-500
-
-                      ${
-                        isHovered
-                          ? "text-[#D52B2B]"
-                          : "text-neutral-400"
-                      }
-                    `}
-                  >
-                    {project.title}
-                  </h3>
-                </div>
-
-                {/* PROJECT IMAGE
-                    IMAGE ITSELF IS THE LINK */}
-                <a
-                  href={project.link || "#"}
-                  target={
-                    project.link ? "_blank" : undefined
-                  }
-                  rel={
-                    project.link
-                      ? "noopener noreferrer"
-                      : undefined
-                  }
-                  onClick={(event) => {
-                    if (!project.link) {
-                      event.preventDefault();
-                    }
-                  }}
-                  aria-label={`Open ${project.title} project`}
-                  className={`
-                    block
-                    cursor-pointer
-
-                    /* SM + MD */
-                    relative
-                    left-0
-                    top-0
-                    w-full
-
-                    pt-[80px]
-                    sm:pt-[82px]
-                    md:pt-[84px]
-
-                    /* DESKTOP */
-                    lg:absolute
-                    lg:left-auto
-                    lg:right-0
-                    lg:top-5
-
-                    lg:w-[28%]
-                    lg:min-w-[320px]
-
-                    lg:pt-0
-
-                    z-10
-
-                    overflow-visible
-
-                    transition-all
-                    duration-700
-                    ease-[cubic-bezier(0.16,1,0.3,1)]
-
-                    ${
-                      isHovered
-                        ? "translate-x-0 scale-100 opacity-100"
-                        : `
-                          translate-x-0
-                          scale-100
-                          opacity-100
-
-                          lg:pointer-events-none
-                          lg:translate-x-12
-                          lg:scale-95
-                          lg:opacity-0
-                        `
-                    }
-                  `}
-                >
-                  <div
-                    className="
-                      relative
-
-                      aspect-[16/9]
-                      sm:aspect-[16/8]
-                      md:aspect-[16/8]
-
-                      w-full
-                      max-w-full
-
-                      overflow-hidden
-
-                      bg-neutral-200
-                    "
-                  >
-                    <img
-                      src={project.image}
-                      alt={project.title}
-                      draggable="false"
-                      className="
-                        h-full
-                        w-full
-
-                        object-cover
-                        grayscale
-
-                        transition-transform
-                        duration-[1200ms]
-                        ease-[cubic-bezier(0.16,1,0.3,1)]
-
-                        group-hover:scale-105
-                      "
-                    />
-
-                    <div
-                      className="
-                        absolute
-                        inset-0
-
-                        bg-black/5
-
-                        transition-colors
-                        duration-500
-
-                        group-hover:bg-black/0
-                      "
-                    />
-                  </div>
-                </a>
-
-                {/* PROJECT DETAILS
-                    SM + MD = BELOW IMAGE
-                    LG = TIGHT DESKTOP POSITION */}
-                <div
-                  className={`
-                    flex
-                    w-full
-                    flex-wrap
-
-                    gap-x-6
-                    gap-y-5
-
-                    pt-5
-                    sm:pt-5
-                    md:pt-5
-
-                    pb-8
-                    sm:pb-8
-
-                    transition-all
-                    duration-700
-                    ease-[cubic-bezier(0.16,1,0.3,1)]
-
-                    lg:absolute
-                    lg:left-0
-                    lg:top-[210px]
-                    lg:z-20
-
-                    lg:w-[60%]
-
-                    lg:flex-nowrap
-                    lg:items-end
-                    lg:gap-8
-
-                    lg:pt-0
-                    lg:pb-0
-
-                    ${
-                      isHovered
-                        ? "translate-y-0 opacity-100"
-                        : `
-                          pointer-events-none
-                          translate-y-6
-                          opacity-0
-
-                          lg:translate-y-10
-                        `
-                    }
-                  `}
-                >
-
-                  {/* ROLE */}
-                  <div
-                    className="
-                      min-w-[180px]
-                      sm:min-w-[200px]
-                      md:min-w-[220px]
-                    "
-                  >
-                    <span
-                      className="
-                        mb-1.5
-                        sm:mb-2
-
-                        block
-
-                        text-[10px]
-                        sm:text-xs
-
-                        uppercase
-                        tracking-[0.18em]
-
-                        text-neutral-500
-                      "
-                    >
-                      Role
-                    </span>
-
-                    <span
-                      className="
-                        text-sm
-                        sm:text-base
-
-                        text-black
-                      "
-                    >
-                      {project.role}
-                    </span>
-                  </div>
-
-                  {/* TIMELINE */}
-                  <div>
-                    <span
-                      className="
-                        mb-1.5
-                        sm:mb-2
-
-                        block
-
-                        text-[10px]
-                        sm:text-xs
-
-                        uppercase
-                        tracking-[0.18em]
-
-                        text-neutral-500
-                      "
-                    >
-                      Timeline
-                    </span>
-
-                    <span
-                      className="
-                        text-sm
-                        sm:text-base
-
-                        text-black
-                      "
-                    >
-                      {project.timeline}
-                    </span>
-                  </div>
-
-                  {/* YEAR */}
-                  <div>
-                    <span
-                      className="
-                        mb-1.5
-                        sm:mb-2
-
-                        block
-
-                        text-[10px]
-                        sm:text-xs
-
-                        uppercase
-                        tracking-[0.18em]
-
-                        text-neutral-500
-                      "
-                    >
-                      Year
-                    </span>
-
-                    <span
-                      className="
-                        text-sm
-                        sm:text-base
-
-                        text-black
-                      "
-                    >
-                      {project.year}
-                    </span>
-                  </div>
-
-                  {/* TEAM */}
-                  <div>
-                    <span
-                      className="
-                        mb-1.5
-                        sm:mb-2
-
-                        block
-
-                        text-[10px]
-                        sm:text-xs
-
-                        uppercase
-                        tracking-[0.18em]
-
-                        text-neutral-500
-                      "
-                    >
-                      Team
-                    </span>
-
-                    <span
-                      className="
-                        text-sm
-                        sm:text-base
-
-                        text-black
-                      "
-                    >
-                      {project.team}
-                    </span>
-                  </div>
-
-                </div>
-              </article>
-            );
-          })}
+        {/* STACKING CARDS */}
+        <div className="flex flex-col gap-[8vh]">
+          {projects.map((project, index) => (
+            <div
+              key={project.id}
+              ref={(el) => (wrapperRefs.current[index] = el)}
+              className="sticky h-[78vh] max-h-[760px]"
+              style={{ top: HEADER_OFFSET + index * STACK_STEP }}
+            >
+              <ProjectCard
+                project={project}
+                index={index}
+                cardRef={(el) => (cardRefs.current[index] = el)}
+              />
+            </div>
+          ))}
         </div>
       </div>
     </section>
