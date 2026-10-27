@@ -1,5 +1,13 @@
 @import "tailwindcss";
 
+@theme {
+  --color-brand: #E10600;
+  --color-ink: #111111;
+  --font-loader: "Plus Jakarta Sans", "Hind", "Hind Guntur", "Hind Madurai", ui-sans-serif, system-ui, sans-serif;
+  --font-name: "Kaushan Script", "Brush Script MT", cursive;
+  --font-display: "Anton", "Impact", "Arial Narrow", sans-serif;
+}
+
 html, body, #root {
   min-height: 100%;
 }

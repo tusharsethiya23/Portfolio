@@ -7,12 +7,17 @@ export default function Header({
   menuOpen,
 }) {
   const [showHeader, setShowHeader] = useState(true);
+  const [onHero, setOnHero] = useState(true);
 
   useEffect(() => {
     let lastScrollY = window.scrollY;
 
     const handleScroll = () => {
       const currentScrollY = window.scrollY;
+
+      // Transparent while over the red hero, off-white everywhere else
+      const hero = document.getElementById("home");
+      setOnHero(!hero || currentScrollY < hero.offsetHeight - 80);
 
       // Always show header near the top
       if (currentScrollY <= 20) {
@@ -50,11 +55,13 @@ export default function Header({
         items-center
         px-[clamp(16px,3vw,64px)]
         py-[clamp(16px,2vw,32px)]
-        bg-[#F3F2EE]/80
-        backdrop-blur-md
-        transition-transform
+        transition-[transform,background-color]
         duration-500
         ease-[cubic-bezier(0.77,0,0.175,1)]
+        ${onHero
+          ? "bg-transparent"
+          : "bg-[#F3F2EE]/80 backdrop-blur-md"
+        }
         ${showHeader
           ? "translate-y-0"
           : "-translate-y-full"
@@ -79,7 +86,7 @@ export default function Header({
           border-none
         "
       >
-        PAMIDOR.STUDIO®
+        TUSHAR.SETHIYA®
       </button>
 
       {/* MENU BUTTON */}

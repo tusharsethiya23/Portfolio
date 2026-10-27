@@ -1,338 +1,230 @@
-export default function Hero({ scrollToSection }) {
+import { useEffect, useRef } from "react";
+import gsap from "gsap";
+
+const PORTRAIT =
+  "https://ik.imagekit.io/tusharsethiya023/Tushar%20Images/portfolio%20transparent.png?updatedAt=1790599531637";
+
+const STACK = ["React", "JavaScript", "Tailwind CSS", "GSAP"];
+
+export default function Hero({ scrollToSection, ready = true }) {
+  const rootRef = useRef(null);
+
+  /*
+    Intro plays once the loader has lifted:
+    giant name rises, portrait settles in, then the copy.
+  */
+  useEffect(() => {
+    if (!ready) return;
+    if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) return;
+
+    const ctx = gsap.context(() => {
+      gsap
+        .timeline({ defaults: { ease: "expo.out" } })
+        .from(".hero-letter", { yPercent: 105, duration: 1.2, stagger: 0.06 })
+        .from(".hero-portrait", { y: 80, opacity: 0, duration: 1.4 }, 0.15)
+        .from(".hero-reveal", { y: 24, opacity: 0, duration: 0.9, stagger: 0.08 }, 0.45);
+    }, rootRef);
+
+    return () => ctx.revert();
+  }, [ready]);
+
   return (
     <section
       id="home"
+      ref={rootRef}
       className="
+        relative
         flex
         min-h-[100dvh]
         flex-col
-
-        px-4
-        pt-20
-        pb-0
-
-        sm:px-6
-        sm:pt-20
-        sm:pb-0
-
-        md:pt-20
-
-        lg:min-h-[100dvh]
-        lg:px-[clamp(16px,3vw,64px)]
-        lg:pt-8
-        lg:pb-0
+        overflow-hidden
+        bg-brand
+        text-white
       "
     >
+      {/* =========================================
+          GIANT NAME — sits behind the portrait
+      ========================================= */}
+      <h1
+        aria-label="Tushar Sethiya"
+        className="
+          pointer-events-none
+          absolute
+          inset-x-0
+          bottom-[-0.06em]
+          z-0
+          flex
+          justify-center
+          overflow-hidden
+          font-display
+          text-[33vw]
+          leading-[0.8]
+          text-ink
+          select-none
+
+          lg:text-[31vw]
+        "
+      >
+        {"TUSHAR".split("").map((char, i) => (
+          <span key={i} aria-hidden="true" className="hero-letter block">
+            {char}
+          </span>
+        ))}
+      </h1>
+
+      {/* =========================================
+          PORTRAIT
+      ========================================= */}
+      <img
+        src={PORTRAIT}
+        alt="Tushar Sethiya"
+        className="
+          hero-portrait
+          pointer-events-none
+          absolute
+          bottom-0
+          left-1/2
+          z-10
+          h-[62vh]
+          w-auto
+          max-w-none
+          -translate-x-1/2
+          object-contain
+          object-bottom
+
+          sm:h-[70vh]
+          lg:h-[92vh]
+        "
+      />
+
+      {/* =========================================
+          COPY
+      ========================================= */}
       <div
         className="
+          relative
+          z-20
           mx-auto
           flex
           w-full
           max-w-[1800px]
-          flex-1
           flex-col
+          gap-6
+          px-4
+          pt-24
 
-          lg:grid
-          lg:grid-cols-12
-          lg:items-center
-          lg:gap-[clamp(24px,3vw,72px)]
+          sm:px-6
+          sm:pt-28
+
+          lg:flex-row
+          lg:items-start
+          lg:justify-between
+          lg:px-[clamp(16px,3vw,64px)]
+          lg:pt-32
         "
       >
-        {/* =========================================
-            MOBILE + MEDIUM IMAGE
-        ========================================= */}
-        <div
-          className="
-            order-1
-            flex
-            w-full
-            items-center
-            justify-center
-            overflow-visible
-
-            h-[52vh]
-
-            sm:h-[58vh]
-
-            md:h-[54vh]
-
-            -mt-6
-
-            sm:-mt-6
-
-            md:-mt-5
-
-            lg:hidden
-          "
-        >
-          <div
+        {/* LEFT — headline */}
+        <div className="flex max-w-xl flex-col gap-4">
+          <span className="hero-reveal font-mono text-xs uppercase tracking-[0.25em] text-white/80">
+            ( Frontend Developer )
+          </span>
+          <p
             className="
-              relative
-              h-full
-              w-full
-              overflow-visible
+              hero-reveal
+              text-[clamp(28px,4.2vw,64px)]
+              font-semibold
+              leading-[1.02]
+              tracking-tight
+              text-balance
             "
           >
-            <img
-              src="https://ik.imagekit.io/tusharsethiya023/Tushar%20Images/portfolio%20transparent.png?updatedAt=1790599531637"
-              alt="Tushar Sethiya Portrait"
-              className="
-                absolute
-                left-1/2
-                top-1/2
-
-                -translate-x-1/2
-                -translate-y-1/2
-
-                w-[105vw]
-
-                sm:w-[115vw]
-
-                md:w-[115vw]
-
-                max-w-none
-                h-auto
-
-                object-contain
-              "
-            />
-          </div>
+            I make the <span className="font-display font-normal uppercase text-ink">chaos</span> look good.
+          </p>
         </div>
 
-        {/* =========================================
-            LEFT CONTENT
-        ========================================= */}
-        <div
-          className="
-            order-2
-
-            mt-2
-
-            sm:mt-4
-
-            md:mt-3
-
-            flex
-            flex-col
-            justify-center
-
-            space-y-4
-
-            sm:space-y-5
-
-            lg:col-span-6
-            lg:order-none
-            lg:mt-0
-            lg:space-y-[clamp(20px,2vw,32px)]
-          "
-        >
-          <div
-            className="
-              space-y-2
-
-              sm:space-y-3
-            "
-          >
-            {/* NAME */}
-            <h1
+        {/* RIGHT — intro + actions */}
+        <div className="flex max-w-sm flex-col gap-5 lg:items-end lg:text-right">
+          <p className="hero-reveal text-sm leading-relaxed text-white/85 sm:text-base">
+            I build fast, animated interfaces for the web — from first sketch to shipped product.
+          </p>
+          <div className="hero-reveal flex flex-wrap gap-3">
+            <button
+              type="button"
+              onClick={() => scrollToSection("projects")}
               className="
-                w-full
-
-                font-normal
-
-                tracking-[-0.035em]
-                leading-[0.78]
-
-                text-[clamp(4rem,17vw,8rem)]
-
-                sm:text-[clamp(5rem,15vw,9rem)]
-
-                md:text-[clamp(5.5rem,12vw,9rem)]
-
-                lg:text-[clamp(3.2rem,9vw,9rem)]
-              "
-              style={{
-                fontFamily: "'Galgo Condensed', sans-serif",
-              }}
-            >
-              Tushar
-              <br />
-              <span>Sethiya</span>
-            </h1>
-
-            {/* MAIN DESCRIPTION */}
-            <p
-              className="
-                max-w-xl
-
-                pt-1
-
-                text-base
-                font-normal
-                leading-relaxed
-                text-neutral-600
-
-                sm:text-lg
-
-                md:text-lg
-              "
-            >
-              Brands, pixels & the chaos in between.
-            </p>
-
-            {/* SMALL DESCRIPTION */}
-            <p
-              className="
+                cursor-pointer
+                rounded-full
+                bg-ink
+                px-6
+                py-3
                 text-sm
                 font-medium
-                leading-relaxed
-                text-neutral-500
-
-                sm:text-base
+                text-white
+                transition-colors
+                duration-300
+                hover:bg-white
+                hover:text-ink
               "
             >
-              I make the chaos look good.
-            </p>
-          </div>
-
-          {/* =========================================
-              SKILLS
-          ========================================= */}
-          <div
-            className="
-              flex
-              flex-wrap
-              gap-2
-
-              pt-0
-
-              sm:gap-2
-              sm:pt-0
-            "
-          >
-            {[
-              "Brand Design",
-              "Product Design",
-              "UX | UI",
-              "Art Direction",
-              "Motion & 3D",
-            ].map((skill, index) => (
-              <span
-                key={index}
-                onClick={() => scrollToSection("about")}
-                className="
-                  cursor-pointer
-
-                  rounded-full
-                  border
-                  border-neutral-300
-
-                  bg-white/40
-
-                  px-[clamp(12px,1vw,20px)]
-                  py-[clamp(8px,0.7vw,12px)]
-
-                  text-[clamp(11px,0.8vw,14px)]
-                  font-medium
-
-                  shadow-2xs
-
-                  transition-all
-                  duration-300
-
-                  hover:border-black
-                  hover:bg-black
-                  hover:text-white
-                "
-              >
-                {skill}
-              </span>
-            ))}
-          </div>
-        </div>
-
-        {/* =========================================
-            DESKTOP IMAGE — RIGHT SIDE
-        ========================================= */}
-        <div
-          className="
-            hidden
-
-            lg:col-span-6
-            lg:flex
-            lg:order-none
-
-            lg:relative
-            lg:h-full
-            lg:w-full
-
-            lg:items-center
-            lg:justify-end
-
-            lg:overflow-visible
-          "
-        >
-          <div
-            className="
-              relative
-
-              h-[76vh]
-              w-[60vw]
-
-              xl:h-[82vh]
-              xl:w-[66vw]
-
-              2xl:h-[88vh]
-              2xl:w-[70vw]
-
-              max-w-none
-
-              overflow-visible
-            "
-          >
-            <img
-              src="https://ik.imagekit.io/tusharsethiya023/Tushar%20Images/portfolio%20transparent.png?updatedAt=1790599531637"
-              alt="Tushar Sethiya Portrait"
+              See my work
+            </button>
+            <button
+              type="button"
+              onClick={() => scrollToSection("contact")}
               className="
-                h-full
-                w-full
-
-                object-contain
-                object-center
-
-                scale-125
+                cursor-pointer
+                rounded-full
+                border
+                border-white/70
+                px-6
+                py-3
+                text-sm
+                font-medium
+                text-white
+                transition-colors
+                duration-300
+                hover:border-ink
+                hover:bg-ink
               "
-            />
+            >
+              Get in touch
+            </button>
           </div>
         </div>
       </div>
 
       {/* =========================================
-          SCROLL INDICATOR
+          BOTTOM BAR — stack + scroll cue
       ========================================= */}
       <div
         className="
-          mt-3
-
-          sm:mt-4
-
-          md:mt-4
-
-          lg:mt-13
-
-          pb-0
-
-          text-center
-
+          hero-reveal
+          absolute
+          inset-x-0
+          bottom-0
+          z-20
+          hidden
+          items-end
+          justify-between
+          px-[clamp(16px,3vw,64px)]
+          pb-6
           font-mono
-          text-lg
-          tracking-widest
-          text-neutral-400
+          text-[11px]
+          uppercase
+          tracking-[0.25em]
+          text-white
 
-          animate-bounce
+          lg:flex
         "
       >
-        ↓ SCROLL TO EXPLORE
+        <button
+          type="button"
+          onClick={() => scrollToSection("about")}
+          className="cursor-pointer uppercase tracking-[0.25em] hover:opacity-70"
+        >
+          ↓ Scroll
+        </button>
+        <span>{STACK.join(" · ")}</span>
       </div>
     </section>
   );

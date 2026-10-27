@@ -12,14 +12,10 @@ import Projects from "../components/sections/Projects";
 import Skills from "../components/sections/Skills";
 import Contact from "../components/sections/Contact";
 import Footer from "../components/sections/Footer";
-import { loaderCards } from "../data/loaderCards";
 import { projects } from "../data/projects";
 
 export default function Portfolio() {
   const [loading, setLoading] = useState(true);
-  const [visibleCount, setVisibleCount] = useState(0);
-  const [splitProgress, setSplitProgress] = useState(0);
-  const [cardIndex, setCardIndex] = useState(0);
   const [sidebarRendered, setSidebarRendered] = useState(false);
   const [sidebarAnimating, setSidebarAnimating] = useState(false);
   const lenisRef = useRef(null);
@@ -31,22 +27,6 @@ export default function Portfolio() {
     const raf = (time) => { lenis.raf(time); animationFrame = requestAnimationFrame(raf); };
     animationFrame = requestAnimationFrame(raf);
     return () => { cancelAnimationFrame(animationFrame); lenis.destroy(); lenisRef.current = null; };
-  }, []);
-
-  useEffect(() => {
-    const letterIntervals = [80, 160, 240, 320, 400, 480, 560].map((time, idx) => setTimeout(() => setVisibleCount(idx + 1), time));
-    const splitTimer = setTimeout(() => {
-      let progress = 0;
-      const splitInterval = setInterval(() => {
-        progress += 0.05;
-        if (progress >= 1) { progress = 1; clearInterval(splitInterval); }
-        setSplitProgress(progress);
-      }, 25);
-    }, 700);
-    const cardTimes = [1000, 1200, 1350, 1500, 1650, 1800, 1950, 2100];
-    const cardTimeouts = cardTimes.map((time, idx) => setTimeout(() => setCardIndex(idx), time));
-    const finishTimer = setTimeout(() => setLoading(false), 2800);
-    return () => { letterIntervals.forEach(clearTimeout); clearTimeout(splitTimer); cardTimeouts.forEach(clearTimeout); clearTimeout(finishTimer); };
   }, []);
 
   const openMenu = () => {
@@ -70,7 +50,7 @@ export default function Portfolio() {
   return (
     <div className="md:cursor-none bg-[#F3F2EE] text-[#111111] font-sans selection:bg-black selection:text-white overflow-x-clip min-h-[100dvh]">
       <CustomCursor />
-      <Loader loading={loading} visibleCount={visibleCount} splitProgress={splitProgress} cardIndex={cardIndex} loaderCards={loaderCards} />
+      <Loader onReveal={() => setLoading(false)} />
       <Header
         scrollToSection={scrollToSection}
         openMenu={openMenu}
@@ -79,7 +59,7 @@ export default function Portfolio() {
       />
 
       <div className={`transition-opacity duration-1000 ${loading ? "opacity-0" : "opacity-100"}`}>
-        <Hero scrollToSection={scrollToSection} />
+        <Hero scrollToSection={scrollToSection} ready={!loading} />
         <About />
         <Projects projects={projects} />
         <Skills />
