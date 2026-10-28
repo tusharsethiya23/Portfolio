@@ -214,7 +214,7 @@ export default function Hero({ scrollToSection, ready = true }) {
             touch-pan-y
             absolute
             inset-x-0
-            top-[7%]
+            top-[12%]
             z-0
             flex
             justify-center
