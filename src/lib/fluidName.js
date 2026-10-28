@@ -13,16 +13,18 @@
   structure popularised by Pavel Dobryakov's WebGL fluid demo.
 */
 
+// Defaults; each fluid layer can override any of these
 const SETTINGS = {
   simResolution: 128,
   pressureIterations: 20,
-  velocityDissipation: 0.6, // higher = the water calms sooner
-  curl: 28, // swirliness
-  splatForce: 5000, // how hard the pointer pushes
-  splatRadius: 0.35, // size of the push, % of the name height
-  offsetStrength: 1.0, // how far letters get carried
-  offsetRelax: 0.965, // per frame; lower = letters reform faster
-  idleMs: 4500, // stop simulating this long after the last input
+  velocityDissipation: 0.9, // higher = the water calms sooner
+  curl: 18, // swirliness
+  splatForce: 3200, // how hard the pointer pushes
+  splatRadius: 0.35, // size of the push, % of the layer height
+  offsetStrength: 0.8, // how far things get carried
+  offsetRelax: 0.95, // per frame; lower = things reform faster
+  maxOffset: 0.06, // furthest anything can be carried, as a share of the layer
+  idleMs: 4000, // stop simulating this long after the last input
 };
 
 const VERT = `#version 300 es
@@ -121,11 +123,15 @@ void main() {
   // Offset field: carried by the flow, accumulates motion, relaxes to zero
   offset: `${HEAD}
 uniform sampler2D uVelocity; uniform sampler2D uOffset;
-uniform vec2 uTexel; uniform float uDt; uniform float uRelax; uniform float uStrength;
+uniform vec2 uTexel; uniform float uDt; uniform float uRelax; uniform float uStrength; uniform float uMaxOffset;
 void main() {
   vec2 vel = texture(uVelocity, vUv).xy * uTexel;
   vec2 off = texture(uOffset, vUv - uDt * vel).xy;
-  o = vec4(off * uRelax + uDt * vel * uStrength, 0.0, 1.0);
+  off = off * uRelax + uDt * vel * uStrength;
+  // capped, so a hard swirl can't fling content far away or fold it into copies
+  float len = length(off);
+  if (len > uMaxOffset) off *= uMaxOffset / len;
+  o = vec4(off, 0.0, 1.0);
 }`,
 
   // Tiny leftover offsets are dropped so settled letters stay crisp
@@ -195,14 +201,102 @@ function createDoubleFBO(gl, w, h) {
   };
 }
 
+/* ---------- Drawing DOM elements into the fluid texture ---------- */
+
+const isTransparent = (c) => !c || c === "transparent" || /rgba\([^)]*,\s*0\)$/.test(c);
+
+// Background and border of boxes such as buttons
+function drawBox(ctx, style, r, origin) {
+  const bg = style.backgroundColor;
+  const borderWidth = parseFloat(style.borderTopWidth) || 0;
+  const borderColor = style.borderTopColor;
+  const hasBorder = borderWidth > 0 && !isTransparent(borderColor);
+  if (isTransparent(bg) && !hasBorder) return;
+
+  const x = r.left - origin.left;
+  const y = r.top - origin.top;
+  const radius = Math.min(parseFloat(style.borderTopLeftRadius) || 0, r.width / 2, r.height / 2);
+
+  if (!isTransparent(bg)) {
+    ctx.beginPath();
+    ctx.roundRect(x, y, r.width, r.height, radius);
+    ctx.fillStyle = bg;
+    ctx.fill();
+  }
+  if (hasBorder) {
+    ctx.beginPath();
+    ctx.roundRect(x + borderWidth / 2, y + borderWidth / 2, r.width - borderWidth, r.height - borderWidth, Math.max(0, radius - borderWidth / 2));
+    ctx.lineWidth = borderWidth;
+    ctx.strokeStyle = borderColor;
+    ctx.stroke();
+  }
+}
+
+// A text node, word by word, so wrapped lines and mixed fonts land exactly
+function drawText(ctx, node, origin) {
+  const style = getComputedStyle(node.parentElement);
+  if (style.visibility === "hidden") return;
+
+  ctx.font = `${style.fontStyle} ${style.fontWeight} ${style.fontSize} ${style.fontFamily}`;
+  if ("letterSpacing" in ctx) ctx.letterSpacing = style.letterSpacing === "normal" ? "0px" : style.letterSpacing;
+  ctx.fillStyle = style.color;
+  ctx.textBaseline = "alphabetic";
+  const upper = style.textTransform === "uppercase";
+  // a CSS text-stroke used to thicken letters is painted under the fill
+  const strokeWidth = parseFloat(style.webkitTextStrokeWidth) || 0;
+
+  const range = document.createRange();
+  const words = /\S+/g;
+  let match;
+  while ((match = words.exec(node.textContent))) {
+    range.setStart(node, match.index);
+    range.setEnd(node, match.index + match[0].length);
+    const r = range.getClientRects()[0];
+    if (!r || !r.width) continue;
+
+    const word = upper ? match[0].toUpperCase() : match[0];
+    const m = ctx.measureText(word);
+    const ascent = m.fontBoundingBoxAscent ?? m.actualBoundingBoxAscent;
+    const descent = m.fontBoundingBoxDescent ?? m.actualBoundingBoxDescent;
+    const baseline = r.top - origin.top + (r.height - (ascent + descent)) / 2 + ascent;
+    const x = r.left - origin.left;
+
+    if (strokeWidth > 0) {
+      ctx.lineWidth = strokeWidth;
+      ctx.lineJoin = "round";
+      ctx.strokeStyle = style.webkitTextStrokeColor || style.color;
+      ctx.strokeText(word, x, baseline);
+    }
+    ctx.fillText(word, x, baseline);
+  }
+}
+
+function drawElement(ctx, el, origin) {
+  const style = getComputedStyle(el);
+  if (style.display === "none") return;
+  const r = el.getBoundingClientRect();
+  if (!r.width && !r.height) return;
+
+  drawBox(ctx, style, r, origin);
+  el.childNodes.forEach((child) => {
+    if (child.nodeType === Node.TEXT_NODE) drawText(ctx, child, origin);
+    else if (child.nodeType === Node.ELEMENT_NODE && child.tagName !== "CANVAS") drawElement(ctx, child, origin);
+  });
+}
+
 /*
-  Attach the fluid to a name element.
-  - host:    the element the canvas covers (the h1)
-  - letters: the DOM letter elements, used to draw the name texture
+  Attach the fluid to an area.
+  - host:    the element the canvas covers (positioned, e.g. the h1 or the hero)
+  - sources: the elements drawn into the fluid (array, or a function that
+             returns one); they turn invisible, but stay clickable, while
+             the canvas shows them
   Returns { pointerMove(e), pointerLeave(), destroy() } or null when
-  WebGL2 / float render targets aren't available (the name then stays static).
+  WebGL2 / float render targets aren't available (things then stay static).
 */
-export function createFluidName(host, letters) {
+export function createFluid(host, sources, options = {}) {
+  const S = { ...SETTINGS, ...options };
+  const getSources = () => (typeof sources === "function" ? sources() : sources).filter(Boolean);
+
   const canvas = document.createElement("canvas");
   canvas.setAttribute("aria-hidden", "true");
   Object.assign(canvas.style, {
@@ -211,6 +305,7 @@ export function createFluidName(host, letters) {
     width: "100%",
     height: "100%",
     pointerEvents: "none",
+    zIndex: "30", // above the hero photo (z-10) and the copy (z-20) it replaces
     opacity: "0",
   });
 
@@ -285,7 +380,7 @@ export function createFluidName(host, letters) {
       canvas.height = h;
 
       const aspect = w / h;
-      const base = SETTINGS.simResolution;
+      const base = S.simResolution;
       const sw = Math.round(aspect > 1 ? base * aspect : base);
       const sh = Math.round(aspect > 1 ? base : base / aspect);
       sim = {
@@ -299,35 +394,13 @@ export function createFluidName(host, letters) {
       };
     }
 
-    // Draw each DOM letter at its exact on-screen position
+    // Draw every source element (text, wrapped lines, button boxes) at its exact on-screen position
     textCanvas.width = w;
     textCanvas.height = h;
     const ctx = textCanvas.getContext("2d");
     ctx.clearRect(0, 0, w, h);
     ctx.scale(dpr, dpr);
-    letters.forEach((el) => {
-      if (!el) return;
-      const style = getComputedStyle(el);
-      ctx.font = `${style.fontWeight} ${style.fontSize} ${style.fontFamily}`;
-      ctx.fillStyle = style.color;
-      ctx.textBaseline = "alphabetic";
-      const m = ctx.measureText(el.textContent);
-      const ascent = m.fontBoundingBoxAscent ?? m.actualBoundingBoxAscent;
-      const descent = m.fontBoundingBoxDescent ?? m.actualBoundingBoxDescent;
-      const r = el.getBoundingClientRect();
-      const baseline = r.top - rect.top + (r.height - (ascent + descent)) / 2 + ascent;
-      const x = r.left - rect.left;
-
-      // Match a CSS text-stroke used to thicken the letters (painted under the fill)
-      const strokeWidth = parseFloat(style.webkitTextStrokeWidth) || 0;
-      if (strokeWidth > 0) {
-        ctx.lineWidth = strokeWidth;
-        ctx.lineJoin = "round";
-        ctx.strokeStyle = style.webkitTextStrokeColor || style.color;
-        ctx.strokeText(el.textContent, x, baseline);
-      }
-      ctx.fillText(el.textContent, x, baseline);
-    });
+    getSources().forEach((el) => el && drawElement(ctx, el, rect));
 
     gl.bindTexture(gl.TEXTURE_2D, textTex);
     gl.pixelStorei(gl.UNPACK_FLIP_Y_WEBGL, true);
@@ -359,8 +432,8 @@ export function createFluidName(host, letters) {
     gl.uniform1i(u.uTarget, bindTex(0, sim.velocity.read.tex));
     gl.uniform1f(u.uAspect, aspect);
     gl.uniform2f(u.uPoint, x, y);
-    gl.uniform3f(u.uColor, dx * SETTINGS.splatForce, dy * SETTINGS.splatForce, 0);
-    gl.uniform1f(u.uRadius, (SETTINGS.splatRadius / 100) * Math.max(1, aspect));
+    gl.uniform3f(u.uColor, dx * S.splatForce, dy * S.splatForce, 0);
+    gl.uniform1f(u.uRadius, (S.splatRadius / 100) * Math.max(1, aspect));
     blit(sim.velocity.write);
     sim.velocity.swap();
   };
@@ -375,7 +448,7 @@ export function createFluidName(host, letters) {
     u = use("vorticity", texel);
     gl.uniform1i(u.uVelocity, bindTex(0, sim.velocity.read.tex));
     gl.uniform1i(u.uCurl, bindTex(1, sim.curl.tex));
-    gl.uniform1f(u.uCurlStrength, SETTINGS.curl);
+    gl.uniform1f(u.uCurlStrength, S.curl);
     gl.uniform1f(u.uDt, dt);
     blit(sim.velocity.write);
     sim.velocity.swap();
@@ -392,7 +465,7 @@ export function createFluidName(host, letters) {
 
     u = use("pressure", texel);
     gl.uniform1i(u.uDivergence, bindTex(0, sim.divergence.tex));
-    for (let i = 0; i < SETTINGS.pressureIterations; i++) {
+    for (let i = 0; i < S.pressureIterations; i++) {
       gl.uniform1i(u.uPressure, bindTex(1, sim.pressure.read.tex));
       blit(sim.pressure.write);
       sim.pressure.swap();
@@ -408,7 +481,7 @@ export function createFluidName(host, letters) {
     gl.uniform1i(u.uVelocity, bindTex(0, sim.velocity.read.tex));
     gl.uniform1i(u.uSource, bindTex(0, sim.velocity.read.tex));
     gl.uniform1f(u.uDt, dt);
-    gl.uniform1f(u.uDissipation, SETTINGS.velocityDissipation);
+    gl.uniform1f(u.uDissipation, S.velocityDissipation);
     blit(sim.velocity.write);
     sim.velocity.swap();
 
@@ -416,8 +489,9 @@ export function createFluidName(host, letters) {
     gl.uniform1i(u.uVelocity, bindTex(0, sim.velocity.read.tex));
     gl.uniform1i(u.uOffset, bindTex(1, sim.offset.read.tex));
     gl.uniform1f(u.uDt, dt);
-    gl.uniform1f(u.uRelax, SETTINGS.offsetRelax);
-    gl.uniform1f(u.uStrength, SETTINGS.offsetStrength);
+    gl.uniform1f(u.uRelax, S.offsetRelax);
+    gl.uniform1f(u.uStrength, S.offsetStrength);
+    gl.uniform1f(u.uMaxOffset, S.maxOffset);
     blit(sim.offset.write);
     sim.offset.swap();
   };
@@ -433,11 +507,17 @@ export function createFluidName(host, letters) {
     blit(null);
   };
 
+  // Swap the real elements for the canvas copy; opacity keeps buttons clickable
+  let hidden = [];
   const show = (on) => {
     canvas.style.opacity = on ? "1" : "0";
-    // hide the DOM letters (fill and any stroke) while the canvas draws the name
-    host.style.color = on ? "transparent" : "";
-    host.style.webkitTextStrokeColor = on ? "transparent" : "";
+    if (on) {
+      hidden = getSources().map((el) => [el, el.style.opacity]);
+      hidden.forEach(([el]) => (el.style.opacity = "0"));
+    } else {
+      hidden.forEach(([el, previous]) => (el.style.opacity = previous));
+      hidden = [];
+    }
   };
 
   const loop = (now) => {
@@ -448,7 +528,7 @@ export function createFluidName(host, letters) {
     step(dt);
     render();
 
-    if (now - lastInput > SETTINGS.idleMs) {
+    if (now - lastInput > S.idleMs) {
       running = false;
       show(false);
       resetFields();
@@ -494,3 +574,6 @@ export function createFluidName(host, letters) {
     },
   };
 }
+
+// The hero name: the canvas covers the h1 and draws its letters
+export const createFluidName = (host, letters, options) => createFluid(host, letters, options);

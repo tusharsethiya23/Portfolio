@@ -1,6 +1,6 @@
 import { useEffect, useRef } from "react";
 import gsap from "gsap";
-import { createFluidName } from "../../lib/fluidName";
+import { createFluid, createFluidName } from "../../lib/fluidName";
 
 const PORTRAIT =
   "https://ik.imagekit.io/tusharsethiya023/Tushar%20Images/portfolio%20transparent.png?updatedAt=1790599531637";
@@ -66,7 +66,7 @@ function CtaButtons({ scrollToSection, className = "" }) {
 */
 const NAME_LETTERS = "TUSHAR".split("");
 
-function useFluidName() {
+function useFluidName(enabledRef) {
   const nameRef = useRef(null);
   const letterRefs = useRef([]);
   const fluidRef = useRef(null);
@@ -82,7 +82,7 @@ function useFluidName() {
   }, []);
 
   const handlers = {
-    onPointerMove: (e) => fluidRef.current?.pointerMove(e),
+    onPointerMove: (e) => enabledRef.current && fluidRef.current?.pointerMove(e),
     onPointerLeave: () => fluidRef.current?.pointerLeave(),
     onPointerCancel: () => fluidRef.current?.pointerLeave(),
   };
@@ -90,9 +90,42 @@ function useFluidName() {
   return { nameRef, letterRefs, handlers };
 }
 
+/*
+  The headline, intro and buttons get the same fluid on a second layer.
+  It sits in front of the photo (the name's layer sits behind it), and
+  covers the whole hero so it reacts wherever the pointer moves.
+  The photo and the header are not part of it.
+*/
+function useFluidCopy(sectionRef, enabledRef) {
+  useEffect(() => {
+    if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) return;
+    const section = sectionRef.current;
+    // same feel as the name (shared defaults in lib/fluidName.js)
+    const fluid = createFluid(section, () => [...section.querySelectorAll(".hero-reveal")]);
+    if (!fluid) return;
+
+    const move = (e) => enabledRef.current && fluid.pointerMove(e);
+    const leave = () => fluid.pointerLeave();
+    section.addEventListener("pointermove", move);
+    section.addEventListener("pointerleave", leave);
+    section.addEventListener("pointercancel", leave);
+
+    return () => {
+      section.removeEventListener("pointermove", move);
+      section.removeEventListener("pointerleave", leave);
+      section.removeEventListener("pointercancel", leave);
+      fluid.destroy();
+    };
+  }, [sectionRef, enabledRef]);
+}
+
 export default function Hero({ scrollToSection, ready = true }) {
   const rootRef = useRef(null);
-  const fluid = useFluidName();
+  // The fluid stays off until the intro has finished: a snapshot taken
+  // mid-animation would leave the real elements showing behind the copy
+  const introDoneRef = useRef(false);
+  const fluid = useFluidName(introDoneRef);
+  useFluidCopy(rootRef, introDoneRef);
 
   /*
     Intro plays once the loader has lifted:
@@ -100,14 +133,22 @@ export default function Hero({ scrollToSection, ready = true }) {
   */
   useEffect(() => {
     if (!ready) return;
-    if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) return;
+    if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) {
+      introDoneRef.current = true;
+      return;
+    }
 
     const ctx = gsap.context(() => {
       gsap
-        .timeline({ defaults: { ease: "expo.out" } })
-        .from(".hero-letter", { yPercent: 105, duration: 1.2, stagger: 0.06 })
-        .from(".hero-portrait", { y: 80, opacity: 0, duration: 1.4 }, 0.15)
-        .from(".hero-reveal", { y: 24, opacity: 0, duration: 0.9, stagger: 0.08 }, 0.45);
+        .timeline({
+          defaults: { ease: "expo.out" },
+          onComplete: () => {
+            introDoneRef.current = true;
+          },
+        })
+        .from(".hero-letter", { yPercent: 105, duration: 0.85, stagger: 0.045 })
+        .from(".hero-portrait", { y: 80, opacity: 0, duration: 1 }, 0.1)
+        .from(".hero-reveal", { y: 24, opacity: 0, duration: 0.65, stagger: 0.05 }, 0.3);
     }, rootRef);
 
     return () => ctx.revert();
