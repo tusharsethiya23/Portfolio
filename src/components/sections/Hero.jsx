@@ -5,8 +5,6 @@ import { createFluidName } from "../../lib/fluidName";
 const PORTRAIT =
   "https://ik.imagekit.io/tusharsethiya023/Tushar%20Images/portfolio%20transparent.png?updatedAt=1790599531637";
 
-const STACK = ["HTML", "CSS", "JavaScript", "Tailwind CSS", "Node.js", "Express", "MongoDB", "Git"];
-
 function CtaButtons({ scrollToSection, className = "" }) {
   return (
     <div className={`flex gap-3 ${className}`}>
@@ -162,9 +160,6 @@ export default function Hero({ scrollToSection, ready = true }) {
       >
         {/* LEFT — headline */}
         <div className="flex max-w-xl flex-col gap-3 lg:gap-4">
-          <span className="hero-reveal font-mono text-[11px] uppercase tracking-[0.25em] text-white/80 sm:text-xs">
-            ( Frontend Developer )
-          </span>
           <p
             className="
               hero-reveal
@@ -275,40 +270,6 @@ export default function Hero({ scrollToSection, ready = true }) {
       ========================================= */}
       <div className="relative z-20 px-4 pt-4 pb-[max(20px,env(safe-area-inset-bottom))] sm:px-6 lg:hidden">
         <CtaButtons scrollToSection={scrollToSection} className="hero-reveal mx-auto max-w-md" />
-      </div>
-
-      {/* =========================================
-          DESKTOP BOTTOM BAR — stack + scroll cue
-      ========================================= */}
-      <div
-        className="
-          hero-reveal
-          absolute
-          inset-x-0
-          bottom-0
-          z-20
-          hidden
-          items-end
-          justify-between
-          px-[clamp(16px,3vw,64px)]
-          pb-6
-          font-mono
-          text-[11px]
-          uppercase
-          tracking-[0.25em]
-          text-white
-
-          lg:flex
-        "
-      >
-        <button
-          type="button"
-          onClick={() => scrollToSection("about")}
-          className="cursor-pointer uppercase tracking-[0.25em] hover:opacity-70"
-        >
-          ↓ Scroll
-        </button>
-        <span>{STACK.join(" · ")}</span>
       </div>
     </section>
   );

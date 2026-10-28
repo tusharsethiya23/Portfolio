@@ -65,12 +65,6 @@ function ProjectCard({ project, index, cardRef }) {
     >
       {/* TEXT */}
       <div className="order-2 flex min-h-0 flex-1 flex-col gap-4 md:order-1 md:col-span-5 md:justify-between">
-        <div className={`flex flex-wrap gap-x-4 gap-y-1 font-mono text-[11px] uppercase tracking-[0.2em] ${t.muted}`}>
-          <span>{project.year}</span>
-          <span>{project.team}</span>
-          <span>{project.timeline}</span>
-        </div>
-
         <div className="flex flex-col gap-4">
           <h3 className={`font-display text-[clamp(2.5rem,7vw,6.5rem)] uppercase leading-[0.88] ${t.title}`}>
             {project.title}
@@ -183,9 +177,6 @@ export default function Projects({ projects }) {
         {/* HEADER */}
         <div className="mb-[clamp(32px,4vw,64px)] flex flex-col gap-4 border-b border-neutral-300 pb-6 sm:pb-8 md:flex-row md:items-end md:justify-between">
           <div className="flex flex-col gap-4">
-            <span className="font-mono text-[11px] uppercase tracking-[0.25em] text-neutral-500">
-              ( Projects )
-            </span>
             <h2 className="font-display text-[clamp(3.5rem,9vw,8.5rem)] uppercase leading-[0.85] text-ink">
               Selected <span className="text-brand">work</span>
             </h2>

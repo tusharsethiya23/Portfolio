@@ -84,9 +84,6 @@ export default function Skills() {
 
         {/* HEADER */}
         <div className="mb-[clamp(48px,6vw,112px)]">
-          <span className="mb-4 block font-mono text-[11px] uppercase tracking-[0.25em] text-white/50">
-            ( Services )
-          </span>
           <h2
             className="
               font-display

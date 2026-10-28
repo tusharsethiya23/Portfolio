@@ -90,10 +90,6 @@ export default function Sidebar({
               >
                 <span className="inline-block transition-transform duration-500 group-hover:translate-x-3">
                   {item.name}
-                  {/* page order */}
-                  <sup className="ml-2 align-super font-mono text-[clamp(10px,0.9vw,13px)] font-normal tracking-widest text-brand">
-                    0{index + 1}
-                  </sup>
                 </span>
               </button>
             ))}

@@ -91,8 +91,7 @@ export default function Contact() {
         text-white
       "
     >
-      <div className="mx-auto flex w-full max-w-[1800px] items-center justify-between font-mono text-[11px] uppercase tracking-[0.25em] text-white/75">
-        <span>( Contact )</span>
+      <div className="mx-auto flex w-full max-w-[1800px] items-center font-mono text-[11px] uppercase tracking-[0.25em] text-white/75">
         <span>Got a project in mind?</span>
       </div>
 

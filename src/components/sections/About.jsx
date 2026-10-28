@@ -169,8 +169,7 @@ function ToolsMarquee({ className = "" }) {
 
 function Caption({ active }) {
   return (
-    <div className="flex items-center justify-between font-mono text-[11px] uppercase tracking-[0.25em] text-neutral-500">
-      <span>( About )</span>
+    <div className="flex items-center justify-end font-mono text-[11px] uppercase tracking-[0.25em] text-neutral-500">
       <span className="text-ink">{PARAGRAPHS[active].label}</span>
     </div>
   );
