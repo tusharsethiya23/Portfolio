@@ -61,7 +61,6 @@ function MiniBrowser({ stage }) {
         <Block stage={stage} delay={120} done="bg-brand" className="relative flex flex-[1.4] flex-col justify-end gap-[6%] p-[4%]">
           <div className={`transition-opacity duration-500 ${finished ? "opacity-100 delay-300" : "opacity-0"}`}>
             <p className="font-display text-[clamp(1.75rem,4.5vw,4rem)] uppercase leading-[0.85] text-ink">Tushar</p>
-            <p className="mt-1 font-mono text-[9px] uppercase tracking-widest text-white">Frontend Developer</p>
           </div>
           <div className={`flex flex-col gap-1.5 transition-opacity duration-300 ${finished ? "absolute opacity-0" : "opacity-100"}`}>
             <Block stage={stage} delay={200} className="h-4 w-[60%]" />

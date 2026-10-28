@@ -172,7 +172,7 @@ export default function Hero({ scrollToSection, ready = true }) {
               lg:text-[clamp(28px,4.2vw,64px)]
             "
           >
-            I make the <span className="font-display text-[0.86em] font-normal uppercase leading-none text-ink">chaos</span> look good.
+            I make the <span className="font-chaos text-[0.86em] font-normal uppercase leading-none text-ink">chaos</span> look good.
           </p>
           <p className="hero-reveal max-w-md text-xl leading-snug text-white/90 sm:text-2xl lg:hidden">
             I build fast, animated interfaces for the web — from first sketch to shipped product.
@@ -220,14 +220,14 @@ export default function Hero({ scrollToSection, ready = true }) {
             justify-center
             overflow-hidden
             font-hero
-            text-[19.6vw]
-            leading-[1.08]
+            text-[35vw]
+            leading-[0.8]
             text-ink
             select-none
 
             lg:top-auto
             lg:bottom-[12vh]
-            lg:text-[19.2vw]
+            lg:text-[34.5vw]
           "
         >
           {/* outer span: intro animation; inner span: drawn into the fluid texture */}

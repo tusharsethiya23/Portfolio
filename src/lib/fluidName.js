@@ -313,7 +313,17 @@ export function createFluidName(host, letters) {
       const descent = m.fontBoundingBoxDescent ?? m.actualBoundingBoxDescent;
       const r = el.getBoundingClientRect();
       const baseline = r.top - rect.top + (r.height - (ascent + descent)) / 2 + ascent;
-      ctx.fillText(el.textContent, r.left - rect.left, baseline);
+      const x = r.left - rect.left;
+
+      // Match a CSS text-stroke used to thicken the letters (painted under the fill)
+      const strokeWidth = parseFloat(style.webkitTextStrokeWidth) || 0;
+      if (strokeWidth > 0) {
+        ctx.lineWidth = strokeWidth;
+        ctx.lineJoin = "round";
+        ctx.strokeStyle = style.webkitTextStrokeColor || style.color;
+        ctx.strokeText(el.textContent, x, baseline);
+      }
+      ctx.fillText(el.textContent, x, baseline);
     });
 
     gl.bindTexture(gl.TEXTURE_2D, textTex);
@@ -422,8 +432,9 @@ export function createFluidName(host, letters) {
 
   const show = (on) => {
     canvas.style.opacity = on ? "1" : "0";
-    // hide the DOM letters while the canvas draws the name
+    // hide the DOM letters (fill and any stroke) while the canvas draws the name
     host.style.color = on ? "transparent" : "";
+    host.style.webkitTextStrokeColor = on ? "transparent" : "";
   };
 
   const loop = (now) => {
