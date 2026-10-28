@@ -6,6 +6,7 @@
   --font-loader: "Plus Jakarta Sans", "Hind", "Hind Guntur", "Hind Madurai", ui-sans-serif, system-ui, sans-serif;
   --font-name: "Kaushan Script", "Brush Script MT", cursive;
   --font-display: "Anton", "Impact", "Arial Narrow", sans-serif;
+  --font-signature: "Mrs Saint Delafield", "Brush Script MT", cursive;
 }
 
 html, body, #root {

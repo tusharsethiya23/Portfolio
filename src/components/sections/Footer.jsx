@@ -1,114 +1,246 @@
-import { CONTACT } from "../../data/contact";
+import { useEffect, useRef, useState } from "react";
 
-export default function Footer() {
+/*
+  Handwritten signature. A clip rectangle sweeps left to right like a pen
+  writing the name, then a red underline swoosh draws itself beneath.
+*/
+function Signature({ drawn }) {
+  const ease = "cubic-bezier(0.65, 0, 0.35, 1)";
+
+  return (
+    <svg
+      viewBox="0 0 1000 240"
+      role="img"
+      aria-label="Tushar Sethiya, signature"
+      className="h-auto w-[min(85vw,640px)] overflow-visible"
+    >
+      <defs>
+        <clipPath id="signature-pen">
+          <rect
+            x="-20"
+            y="-40"
+            width="1060"
+            height="320"
+            style={{
+              transformBox: "fill-box",
+              transformOrigin: "left center",
+              transform: drawn ? "scaleX(1)" : "scaleX(0)",
+              transition: drawn ? `transform 2.4s ${ease} 0.5s` : "transform 0.3s ease",
+            }}
+          />
+        </clipPath>
+      </defs>
+
+      <text
+        x="10"
+        y="170"
+        textLength="980"
+        lengthAdjust="spacingAndGlyphs"
+        clipPath="url(#signature-pen)"
+        fill="#ffffff"
+        className="font-signature"
+        fontSize="170"
+      >
+        Tushar Sethiya
+      </text>
+
+      <path
+        d="M40 205 C 300 238, 660 168, 970 192"
+        pathLength="1"
+        fill="none"
+        stroke="var(--color-brand)"
+        strokeWidth="5"
+        strokeLinecap="round"
+        strokeDasharray="1"
+        style={{
+          strokeDashoffset: drawn ? 0 : 1,
+          transition: drawn ? `stroke-dashoffset 0.9s ${ease} 2.8s` : "stroke-dashoffset 0.3s ease",
+        }}
+      />
+    </svg>
+  );
+}
+
+const TIME_ZONE = "Asia/Kolkata";
+const TIME_LABEL = "IST";
+
+function useLocalTime() {
+  const format = () =>
+    new Intl.DateTimeFormat("en-GB", {
+      timeZone: TIME_ZONE,
+      hour: "2-digit",
+      minute: "2-digit",
+      second: "2-digit",
+    }).format(new Date());
+
+  const [time, setTime] = useState(format);
+
+  useEffect(() => {
+    const id = setInterval(() => setTime(format()), 1000);
+    return () => clearInterval(id);
+  }, []);
+
+  return time;
+}
+
+
+/*
+  Curtain-reveal ending: the footer is pinned to the bottom of the screen
+  underneath the Contact section (which sits above it with z-10). As Contact
+  scrolls away, it lifts like a curtain and uncovers this full-screen footer.
+*/
+export default function Footer({ scrollToSection }) {
+  const footerRef = useRef(null);
+  const [revealed, setRevealed] = useState(false);
+  const time = useLocalTime();
+
+  // Once most of the footer is uncovered, the sign-off rises in
+  useEffect(() => {
+    const el = footerRef.current;
+    if (!el) return;
+
+    const observer = new IntersectionObserver(
+      ([entry]) => setRevealed(entry.isIntersecting),
+      { threshold: 0.6 }
+    );
+    observer.observe(el);
+
+    return () => observer.disconnect();
+  }, []);
+
+  const label = "mb-2 block font-mono text-[11px] uppercase tracking-[0.25em] text-white/45";
+  const rise = (delay) => ({
+    className: `block transition-[translate,opacity] duration-1000 ease-[cubic-bezier(0.16,1,0.3,1)] ${
+      revealed ? "translate-y-0 opacity-100" : "translate-y-full opacity-0"
+    }`,
+    style: { transitionDelay: revealed ? `${delay}ms` : "0ms" },
+  });
+
   return (
     <footer
+      ref={footerRef}
       id="footer"
-      className="relative overflow-hidden bg-[#0b0b0b] px-[clamp(16px,3vw,64px)] py-[clamp(56px,7vw,140px)] text-white"
+      className="
+        sticky
+        bottom-0
+        z-0
+        flex
+        h-[100dvh]
+        flex-col
+        justify-between
+        overflow-hidden
+        bg-[#0b0b0b]
+        px-[clamp(16px,3vw,64px)]
+        pt-[clamp(88px,8vw,120px)]
+        pb-[clamp(24px,4vw,64px)]
+        text-white
+      "
     >
-      <div className="mx-auto max-w-[1600px]">
+      {/* =========================================
+          TOP ROW — back to top
+      ========================================= */}
+      <div className="mx-auto flex w-full max-w-[1600px] items-center justify-end gap-6">
 
-        {/* BRAND */}
-        <div className="overflow-hidden">
-          <h2 className="break-words text-[clamp(3.4rem,10vw,13rem)] font-semibold leading-[0.82] tracking-[-0.08em] text-[#f3f1ed]">
-            TUSHAR SETHIYA<span className="text-[0.45em] align-top">®</span>
-          </h2>
-        </div>
-
-        {/* MIDDLE CONTENT */}
-        <div className="mt-14 grid grid-cols-1 gap-10 sm:mt-20 sm:gap-12 lg:grid-cols-2">
-
-          {/* TAGLINE */}
-          <div>
-            <p className="max-w-[620px] text-[clamp(2rem,9vw,4rem)] font-medium leading-[0.95] tracking-[-0.05em] text-[#f3f1ed] sm:text-[clamp(2rem,4vw,4rem)]">
-              BUILDING DIGITAL
-              <br />
-              EXPERIENCES WITH
-              <br />
-              PURPOSE.
-            </p>
-          </div>
-
-          {/* LINKS */}
-          <div className="flex flex-col justify-end lg:items-end">
-
-            {/* CONTACT */}
-            <div className="flex flex-wrap gap-x-8 gap-y-4 text-sm uppercase tracking-wide">
-              <a
-                href={`mailto:${CONTACT.email}`}
-                className="transition-opacity duration-300 lowercase hover:opacity-50"
-              >
-                {CONTACT.email}
-              </a>
-
-              <a
-                href={CONTACT.linkedin}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="transition-opacity duration-300 hover:opacity-50"
-              >
-                LinkedIn
-              </a>
-
-              <a
-                href={CONTACT.github}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="transition-opacity duration-300 hover:opacity-50"
-              >
-                GitHub
-              </a>
-              <a
-                href="#"
-                className="transition-opacity duration-300 hover:opacity-50"
-              >
-                Instagram
-              </a>
-            </div>
-
-            {/* LEGAL */}
-            <div className="mt-8 flex flex-wrap gap-x-6 gap-y-3 text-xs uppercase tracking-wide sm:gap-8 sm:text-sm">
-              <a
-                href="#privacy"
-                className="transition-opacity duration-300 hover:opacity-50"
-              >
-                Privacy
-              </a>
-
-              <a
-                href="#terms"
-                className="transition-opacity duration-300 hover:opacity-50"
-              >
-                Terms
-              </a>
-            </div>
-          </div>
-        </div>
-
-        {/* BOTTOM */}
-        <div className="mt-16 flex flex-col gap-4 border-t border-white/20 pt-6 text-xs text-white/60 sm:mt-24 sm:flex-row sm:items-center sm:justify-between sm:text-sm">
-
-          <span>
-            © {new Date().getFullYear()} Tushar Sethiya. All rights reserved.
-          </span>
-
-          <span className="uppercase tracking-[0.2em]">
-            MERN Stack Developer
-          </span>
-
-        </div>
+        <button
+          type="button"
+          onClick={() => scrollToSection?.("home")}
+          className="
+            shrink-0
+            cursor-pointer
+            rounded-full
+            border
+            border-white/40
+            px-5
+            py-2.5
+            font-mono
+            text-[11px]
+            uppercase
+            tracking-[0.2em]
+            text-white
+            transition-colors
+            duration-300
+            hover:border-brand
+            hover:bg-brand
+          "
+        >
+          ↑ Back to top
+        </button>
       </div>
 
-      {/* W. BADGE */}
-      {/* <div className="absolute right-0 top-1/2 hidden -translate-y-1/2 bg-black px-5 py-7 sm:flex sm:flex-col sm:items-center sm:gap-4">
-            <span className="font-mono text-2xl font-bold tracking-widest">
-              W.
-            </span>
+      {/* =========================================
+          SIGN-OFF — rises in as the curtain lifts
+      ========================================= */}
+      <div className="mx-auto grid w-full max-w-[1600px] gap-8 lg:grid-cols-12 lg:items-end lg:gap-[clamp(32px,4vw,80px)]">
+      <p className="lg:col-span-8">
+        <span className="block overflow-hidden">
+          <span
+            {...rise(0)}
+            className={`${rise(0).className} font-display text-[clamp(2.5rem,10vw,10rem)] uppercase leading-[0.9] text-white`}
+          >
+            Thanks for scrolling.
+          </span>
+        </span>
+        <span className="mt-3 block overflow-hidden pb-[0.1em]">
+          <span
+            {...rise(200)}
+            className={`${rise(200).className} font-loader text-[clamp(1.4rem,3.6vw,3.5rem)] font-bold leading-[1.15] tracking-tight text-brand`}
+          >
+            See you on the other side.
+          </span>
+        </span>
+      </p>
 
-            <span className="[writing-mode:vertical-lr] rotate-180 text-[11px] font-medium uppercase tracking-widest text-white/80">
-              Nominee
-            </span>
-          </div> */}
+      {/* SIDE PANEL — what's going on right now */}
+      <dl className="hidden sm:grid grid-cols-2 gap-x-6 border-t border-white/15 lg:col-span-4 lg:grid-cols-1">
+        {[
+          { label: "Currently", value: "Building ArenaX" },
+          { label: "Role", value: "MERN Stack Developer" },
+          {
+            label: "Local time",
+            value: (
+              <span className="font-mono tabular-nums">
+                {time} <span className="text-white/45">{TIME_LABEL}</span>
+              </span>
+            ),
+          },
+        ].map((row) => (
+          <div key={row.label} className="border-b border-white/15 py-3 last:col-span-2 lg:last:col-span-1">
+            <dt className={label}>{row.label}</dt>
+            <dd className="text-base text-white sm:text-lg">{row.value}</dd>
+          </div>
+        ))}
+      </dl>
+      </div>
+
+      {/* =========================================
+          BOTTOM — horizon line, signature, credits
+      ========================================= */}
+      <div>
+        {/* red horizon line: draws across while a dot travels along it */}
+        <div aria-hidden="true" className="relative mx-auto mb-8 h-px w-full max-w-[1600px]">
+          <div
+            className={`absolute inset-0 origin-left bg-brand transition-transform duration-[1400ms] ease-[cubic-bezier(0.65,0,0.35,1)] ${
+              revealed ? "scale-x-100" : "scale-x-0"
+            }`}
+            style={{ transitionDelay: revealed ? "300ms" : "0ms" }}
+          />
+          <span
+            className={`absolute top-1/2 h-2.5 w-2.5 -translate-x-1/2 -translate-y-1/2 rounded-full bg-brand shadow-[0_0_12px_rgba(225,6,0,0.8)] transition-[left,opacity] duration-[1400ms] ease-[cubic-bezier(0.65,0,0.35,1)] ${
+              revealed ? "left-full opacity-100" : "left-0 opacity-0"
+            }`}
+            style={{ transitionDelay: revealed ? "300ms" : "0ms" }}
+          />
+        </div>
+
+        <div className="mx-auto mb-4 w-full max-w-[1600px]">
+          <Signature drawn={revealed} />
+        </div>
+
+        <div className="mx-auto flex w-full max-w-[1600px] flex-col gap-1 border-t border-white/15 pt-5 text-xs text-white/45 sm:flex-row sm:items-center sm:justify-between sm:text-sm">
+          <span>© {new Date().getFullYear()} Tushar Sethiya. All rights reserved.</span>
+          <span className="uppercase tracking-[0.2em]">Designed &amp; built by Tushar</span>
+        </div>
+      </div>
     </footer>
   );
 }

@@ -63,8 +63,11 @@ export default function Portfolio() {
         <About />
         <Projects projects={projects} />
         <Skills />
-        <Contact />
-        <Footer />
+        {/* Contact lifts like a curtain to uncover the footer pinned beneath it */}
+        <div className="relative">
+          <Contact />
+          <Footer scrollToSection={scrollToSection} />
+        </div>
       </div>
 
       <Sidebar

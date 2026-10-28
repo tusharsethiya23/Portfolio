@@ -78,6 +78,7 @@ export default function Contact() {
       id="contact"
       className="
         relative
+        z-10
         flex
         min-h-[100dvh]
         flex-col
