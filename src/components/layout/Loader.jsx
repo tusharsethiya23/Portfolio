@@ -123,7 +123,8 @@ export default function Loader({ onReveal }) {
             items-center
             text-center
             text-[clamp(36px,11vw,64px)]
-            font-bold
+            font-greeting
+            font-normal
             leading-[1.4]
             tracking-tight
 
