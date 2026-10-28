@@ -49,7 +49,7 @@ export default function Sidebar({
         >
 
           {/* NAVIGATION */}
-          <nav className="flex flex-col gap-1 sm:gap-2">
+          <nav className="my-auto flex flex-col items-center gap-2 sm:my-0 sm:items-start">
 
             {menuItems.map((item, index) => (
               <button
@@ -62,13 +62,17 @@ export default function Sidebar({
                   w-fit
                   border-none
                   bg-transparent
-                  text-left
+                  text-center
+                  sm:text-left
                   cursor-pointer
                   py-1
-                  text-[clamp(2rem,6vw,5rem)]
-                  font-semibold
-                  leading-[0.9]
+                  text-[clamp(3rem,15vw,4.5rem)]
+                  font-bold
+                  leading-[1.15]
                   tracking-tight
+                  sm:text-[clamp(2rem,6vw,5rem)]
+                  sm:font-semibold
+                  sm:leading-[0.9]
                   text-[#111111]
                   hover:text-brand
                   focus-visible:text-brand
@@ -148,7 +152,7 @@ export default function Sidebar({
             </div>
 
             <p className="font-mono uppercase tracking-widest">
-              © 2026 Tushar Sethiya · Frontend Developer
+              © 2026 Tushar Sethiya
             </p>
           </div>
 
