@@ -1,5 +1,6 @@
 import { useEffect, useRef } from "react";
 import gsap from "gsap";
+import { createFluidName } from "../../lib/fluidName";
 
 const PORTRAIT =
   "https://ik.imagekit.io/tusharsethiya023/Tushar%20Images/portfolio%20transparent.png?updatedAt=1790599531637";
@@ -60,8 +61,40 @@ function CtaButtons({ scrollToSection, className = "" }) {
   );
 }
 
+/*
+  Fluid name: moving the pointer over the giant name stirs a real fluid
+  simulation (see lib/fluidName.js). The letters swirl with the flow and
+  drift back into shape once the water calms.
+*/
+const NAME_LETTERS = "TUSHAR".split("");
+
+function useFluidName() {
+  const nameRef = useRef(null);
+  const letterRefs = useRef([]);
+  const fluidRef = useRef(null);
+
+  useEffect(() => {
+    if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) return;
+    const fluid = createFluidName(nameRef.current, letterRefs.current);
+    fluidRef.current = fluid;
+    return () => {
+      fluid?.destroy();
+      fluidRef.current = null;
+    };
+  }, []);
+
+  const handlers = {
+    onPointerMove: (e) => fluidRef.current?.pointerMove(e),
+    onPointerLeave: () => fluidRef.current?.pointerLeave(),
+    onPointerCancel: () => fluidRef.current?.pointerLeave(),
+  };
+
+  return { nameRef, letterRefs, handlers };
+}
+
 export default function Hero({ scrollToSection, ready = true }) {
   const rootRef = useRef(null);
+  const fluid = useFluidName();
 
   /*
     Intro plays once the loader has lifted:
@@ -179,9 +212,11 @@ export default function Hero({ scrollToSection, ready = true }) {
         "
       >
         <h1
+          ref={fluid.nameRef}
+          {...fluid.handlers}
           aria-label="Tushar Sethiya"
           className="
-            pointer-events-none
+            touch-pan-y
             absolute
             inset-x-0
             top-[7%]
@@ -200,9 +235,15 @@ export default function Hero({ scrollToSection, ready = true }) {
             lg:text-[31vw]
           "
         >
-          {"TUSHAR".split("").map((char, i) => (
+          {/* outer span: intro animation; inner span: drawn into the fluid texture */}
+          {NAME_LETTERS.map((char, i) => (
             <span key={i} aria-hidden="true" className="hero-letter block">
-              {char}
+              <span
+                ref={(el) => (fluid.letterRefs.current[i] = el)}
+                className="block origin-bottom will-change-transform"
+              >
+                {char}
+              </span>
             </span>
           ))}
         </h1>
