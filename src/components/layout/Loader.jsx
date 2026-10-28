@@ -9,9 +9,42 @@ const GREETINGS = [
   { text: "Hola", lang: "es" },
 ];
 
-const COUNT_DURATION = 1.6; // seconds for 0 → 100
+const MIN_COUNT_SECONDS = 1.2; // fast connections still get a visible count
+const MAX_WAIT_SECONDS = 12; // never hold visitors longer than this
 const GREETING_HOLD = 0.18; // seconds each greeting stays before the next
 const SWAP = 0.3; // seconds for one greeting to slide into the next
+
+/*
+  Real loading progress: fonts, the window load event, and every image
+  on the page that isn't lazy-loaded. Calls onProgress(done, total)
+  each time one of them finishes (or fails, so nothing can stall it).
+*/
+function trackPageLoad(onProgress) {
+  const tasks = [
+    document.fonts ? document.fonts.ready : Promise.resolve(),
+    document.readyState === "complete"
+      ? Promise.resolve()
+      : new Promise((resolve) => window.addEventListener("load", resolve, { once: true })),
+    ...[...document.images]
+      .filter((img) => img.loading !== "lazy" && !img.complete)
+      .map(
+        (img) =>
+          new Promise((resolve) => {
+            img.addEventListener("load", resolve, { once: true });
+            img.addEventListener("error", resolve, { once: true });
+          })
+      ),
+  ];
+
+  let done = 0;
+  onProgress(done, tasks.length);
+  tasks.forEach((task) =>
+    task.then(() => {
+      done += 1;
+      onProgress(done, tasks.length);
+    })
+  );
+}
 
 export default function Loader({ onReveal }) {
   const rootRef = useRef(null);
@@ -26,9 +59,11 @@ export default function Loader({ onReveal }) {
     const root = rootRef.current;
     const q = gsap.utils.selector(root);
     const counter = q(".ld-count")[0];
+    const ring = q(".ld-ring")[0];
     const slot = q(".ld-slot")[0];
     const words = q(".ld-word");
     const reduceMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+    let frame;
 
     const ctx = gsap.context(() => {
       // The slot glides to each greeting's width so "I am Tushar" moves smoothly.
@@ -37,10 +72,10 @@ export default function Loader({ onReveal }) {
       gsap.set(words, { yPercent: 110 });
       gsap.set(words[0], { yPercent: 0 });
 
-      const tl = gsap.timeline();
-
       if (reduceMotion) {
-        tl.set(q(".ld-counter"), { autoAlpha: 0 })
+        gsap
+          .timeline()
+          .set(q(".ld-counter"), { autoAlpha: 0 })
           .set(slot, { width: widthOf(0) })
           .set(q(".ld-greeting"), { autoAlpha: 1 })
           .call(() => onRevealRef.current?.(), null, 1.6)
@@ -49,43 +84,72 @@ export default function Loader({ onReveal }) {
         return;
       }
 
-      // 0 → 100
-      const count = { v: 0 };
-      tl.to(count, {
-        v: 100,
-        duration: COUNT_DURATION,
-        ease: "power2.inOut",
-        onUpdate: () => {
-          counter.textContent = Math.round(count.v);
-        },
-      })
-        .to(q(".ld-counter"), { yPercent: -40, autoAlpha: 0, duration: 0.4, ease: "power3.in" }, "+=0.1");
+      // Everything after the count: number lifts away, greeting, exit
+      const playGreeting = () => {
+        const tl = gsap.timeline();
+        // the closed ring gives a small pulse before the counter lifts away
+        tl.to(q(".ld-ring-wrap"), { scale: 1.06, duration: 0.25, ease: "power2.out" }, 0)
+          .to(q(".ld-counter"), { yPercent: -40, autoAlpha: 0, duration: 0.4, ease: "power3.in" }, 0.25)
+          .set(slot, { width: widthOf(0) })
+          .set(q(".ld-greeting"), { autoAlpha: 1 })
+          .fromTo(q(".ld-rise"), { yPercent: 110 }, { yPercent: 0, duration: 0.7, ease: "expo.out", stagger: 0.06 }, 0.6);
 
-      // Hello, I am Tushar
-      tl.set(slot, { width: widthOf(0) })
-        .set(q(".ld-greeting"), { autoAlpha: 1 })
-        .fromTo(
-          q(".ld-rise"),
-          { yPercent: 110 },
-          { yPercent: 0, duration: 0.7, ease: "expo.out", stagger: 0.06 }
-        );
+        // Greeting changes language, the rest stays
+        GREETINGS.slice(1).forEach((_, idx) => {
+          const i = idx + 1;
+          tl.to(words[i - 1], { yPercent: -110, duration: SWAP, ease: "power3.inOut" }, `+=${GREETING_HOLD}`)
+            .to(words[i], { yPercent: 0, duration: SWAP, ease: "power3.inOut" }, "<")
+            .to(slot, { width: widthOf(i), duration: SWAP, ease: "power3.inOut" }, "<");
+        });
 
-      // Greeting changes language, the rest stays
-      GREETINGS.slice(1).forEach((_, idx) => {
-        const i = idx + 1;
-        const at = `+=${GREETING_HOLD}`;
-        tl.to(words[i - 1], { yPercent: -110, duration: SWAP, ease: "power3.inOut" }, at)
-          .to(words[i], { yPercent: 0, duration: SWAP, ease: "power3.inOut" }, "<")
-          .to(slot, { width: widthOf(i), duration: SWAP, ease: "power3.inOut" }, "<");
+        // Exit: the loader lifts away and the site fades in underneath
+        tl.call(() => onRevealRef.current?.(), null, "+=0.45")
+          .to(root, { yPercent: -100, duration: 0.9, ease: "expo.inOut" }, "<")
+          .call(() => setDone(true));
+      };
+
+      /*
+        0 → 100 follows real loading. The shown number glides toward the
+        loaded share, can't run ahead of a minimum pace, and only reaches
+        100 once everything is in. The red ring draws itself around it.
+      */
+      let loaded = 0;
+      trackPageLoad((doneCount, total) => {
+        loaded = total ? doneCount / total : 1;
       });
 
-      // Exit: the loader lifts away and the site fades in underneath
-      tl.call(() => onRevealRef.current?.(), null, "+=0.45")
-        .to(root, { yPercent: -100, duration: 0.9, ease: "expo.inOut" }, "<")
-        .call(() => setDone(true));
+      const start = performance.now();
+      let shown = 0;
+
+      const tick = (now) => {
+        const elapsed = (now - start) / 1000;
+        const timedOut = elapsed > MAX_WAIT_SECONDS;
+        const complete = loaded >= 1 || timedOut;
+
+        const target = complete ? 100 : Math.min(99, loaded * 100);
+        const paceCap = Math.min(100, (elapsed / MIN_COUNT_SECONDS) * 100);
+        const goal = Math.min(target, paceCap);
+        shown += Math.max(0, goal - shown) * 0.08 + (goal > shown ? 0.15 : 0);
+        shown = Math.min(shown, goal);
+
+        counter.textContent = Math.round(shown);
+        ring.style.strokeDashoffset = String(1 - shown / 100);
+
+        if (complete && shown >= 99.9) {
+          counter.textContent = "100";
+          ring.style.strokeDashoffset = "0";
+          playGreeting();
+          return;
+        }
+        frame = requestAnimationFrame(tick);
+      };
+      frame = requestAnimationFrame(tick);
     }, root);
 
-    return () => ctx.revert();
+    return () => {
+      cancelAnimationFrame(frame);
+      ctx.revert();
+    };
   }, []);
 
   if (done) return null;
@@ -105,11 +169,28 @@ export default function Loader({ onReveal }) {
         select-none
       "
     >
-      {/* ================= COUNTER ================= */}
+      {/* ================= COUNTER =================
+          A thin red ring draws itself clockwise around the number
+          as loading progresses, closing at 100. */}
       <div className="ld-counter absolute inset-0 flex items-center justify-center">
-        <div className="flex items-start font-black leading-none tracking-tight">
-          <span className="ld-count tabular-nums text-[clamp(112px,32vw,280px)] sm:text-[clamp(96px,22vw,280px)]">0</span>
-          <span className="mt-[0.6em] text-[clamp(22px,6vw,40px)] text-[#E10600] sm:text-[clamp(20px,3vw,40px)]">%</span>
+        <div className="ld-ring-wrap relative flex aspect-square w-[min(82vw,64vh)] items-center justify-center">
+          <svg aria-hidden="true" viewBox="0 0 100 100" className="absolute inset-0 h-full w-full -rotate-90">
+            <circle cx="50" cy="50" r="48" fill="none" stroke="rgba(255,255,255,0.12)" strokeWidth="0.5" />
+            <circle
+              className="ld-ring"
+              cx="50"
+              cy="50"
+              r="48"
+              fill="none"
+              stroke="var(--color-brand)"
+              strokeWidth="1.2"
+              strokeLinecap="round"
+              pathLength="1"
+              strokeDasharray="1"
+              strokeDashoffset="1"
+            />
+          </svg>
+          <span className="ld-count font-black leading-none tracking-tight tabular-nums text-[min(22vw,17vh)]">0</span>
         </div>
       </div>
 
