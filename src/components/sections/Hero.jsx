@@ -143,12 +143,12 @@ export default function Hero({ scrollToSection, ready = true }) {
           w-full
           max-w-[1800px]
           flex-col
-          gap-4
+          gap-2
           px-4
-          pt-20
+          pt-28
 
           sm:px-6
-          sm:pt-24
+          sm:pt-32
 
           lg:flex-row
           lg:items-start
@@ -158,12 +158,12 @@ export default function Hero({ scrollToSection, ready = true }) {
           lg:pt-32
         "
       >
-        {/* LEFT — headline */}
-        <div className="flex max-w-xl flex-col gap-3 lg:gap-4">
+        {/* LEFT — headline (centred on phones and tablets) */}
+        <div className="mx-auto flex max-w-xl flex-col items-center gap-5 text-center lg:mx-0 lg:items-start lg:gap-4 lg:text-left">
           <p
             className="
               hero-reveal
-              text-[clamp(30px,8.5vw,48px)]
+              text-[clamp(44px,14vw,76px)]
               font-semibold
               leading-[1.02]
               tracking-tight
@@ -172,9 +172,9 @@ export default function Hero({ scrollToSection, ready = true }) {
               lg:text-[clamp(28px,4.2vw,64px)]
             "
           >
-            I make the <span className="font-display font-normal uppercase text-ink">chaos</span> look good.
+            I make the <span className="font-display text-[0.86em] font-normal uppercase leading-none text-ink">chaos</span> look good.
           </p>
-          <p className="hero-reveal max-w-xs text-sm leading-relaxed text-white/85 lg:hidden">
+          <p className="hero-reveal max-w-md text-xl leading-snug text-white/90 sm:text-2xl lg:hidden">
             I build fast, animated interfaces for the web — from first sketch to shipped product.
           </p>
         </div>
@@ -214,20 +214,20 @@ export default function Hero({ scrollToSection, ready = true }) {
             touch-pan-y
             absolute
             inset-x-0
-            top-[12%]
+            top-[28%]
             z-0
             flex
             justify-center
             overflow-hidden
-            font-display
-            text-[35vw]
-            leading-[0.8]
+            font-hero
+            text-[19.6vw]
+            leading-[1.08]
             text-ink
             select-none
 
             lg:top-auto
-            lg:bottom-[-0.06em]
-            lg:text-[31vw]
+            lg:bottom-[12vh]
+            lg:text-[19.2vw]
           "
         >
           {/* outer span: intro animation; inner span: drawn into the fluid texture */}
@@ -243,26 +243,34 @@ export default function Hero({ scrollToSection, ready = true }) {
           ))}
         </h1>
 
-        <img
-          src={PORTRAIT}
-          alt="Tushar Sethiya"
+        {/* Wrapper centres the figure (its visual centre sits at 36% of the image width);
+            the intro animation moves only the img inside, so it can't undo the centring */}
+        <div
           className="
-            hero-portrait
             pointer-events-none
             absolute
             bottom-0
             left-1/2
             z-10
-            h-full
-            w-auto
-            max-w-none
-            -translate-x-[35%]
-            object-contain
-            object-bottom
+            h-[76%]
+            -translate-x-[36%]
 
             lg:h-[92vh]
           "
-        />
+        >
+          <img
+            src={PORTRAIT}
+            alt="Tushar Sethiya"
+            className="
+              hero-portrait
+              h-full
+              w-auto
+              max-w-none
+              object-contain
+              object-bottom
+            "
+          />
+        </div>
       </div>
 
       {/* =========================================
