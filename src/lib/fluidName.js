@@ -128,10 +128,13 @@ void main() {
   o = vec4(off * uRelax + uDt * vel * uStrength, 0.0, 1.0);
 }`,
 
+  // Tiny leftover offsets are dropped so settled letters stay crisp
+  // instead of looking frayed by low-level simulation noise
   display: `${HEAD}
 uniform sampler2D uText; uniform sampler2D uOffset;
 void main() {
   vec2 off = texture(uOffset, vUv).xy;
+  off *= smoothstep(0.002, 0.006, length(off));
   o = texture(uText, vUv - off);
 }`,
 };

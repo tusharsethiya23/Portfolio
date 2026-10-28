@@ -226,8 +226,10 @@ export default function Hero({ scrollToSection, ready = true }) {
             select-none
 
             lg:top-auto
-            lg:bottom-[12vh]
-            lg:text-[34.5vw]
+            lg:bottom-[1vh]
+            lg:text-[min(31vw,62vh)]
+            lg:justify-between
+            lg:px-[clamp(16px,3vw,64px)]
           "
         >
           {/* outer span: intro animation; inner span: drawn into the fluid texture */}
