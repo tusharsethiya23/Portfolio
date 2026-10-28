@@ -193,7 +193,6 @@ export default function Footer({ scrollToSection }) {
       {/* SIDE PANEL — what's going on right now */}
       <dl className="hidden sm:grid grid-cols-2 gap-x-6 border-t border-white/15 lg:col-span-4 lg:grid-cols-1">
         {[
-          { label: "Currently", value: "Building ArenaX" },
           { label: "Role", value: "MERN Stack Developer" },
           {
             label: "Local time",
@@ -204,7 +203,7 @@ export default function Footer({ scrollToSection }) {
             ),
           },
         ].map((row) => (
-          <div key={row.label} className="border-b border-white/15 py-3 last:col-span-2 lg:last:col-span-1">
+          <div key={row.label} className="border-b border-white/15 py-3">
             <dt className={label}>{row.label}</dt>
             <dd className="text-base text-white sm:text-lg">{row.value}</dd>
           </div>
